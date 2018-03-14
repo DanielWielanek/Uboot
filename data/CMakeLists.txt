@@ -1,0 +1,5 @@
+#configure_file(ityp.txt ${CMAKE_INSTALL_PREFIX}/data COPYONLY)
+#add_custom_target(ityp.txt)
+install(FILES ityp.data  DESTINATION data)
+install(FILES decays.data  DESTINATION data)
+install(FILES particles.data  DESTINATION data)
