@@ -27,19 +27,19 @@ U2boot inFile outFile optional_flags
 ```
 following flags are supported:
 -f clean temporary files (by default this code produce diretory with text files processed by UrQMD, usually they are not needed
-after so yo can remove them)
--s=N where you specify status of processed particles - other particles are not processed.
--n=N to specify number of events to process (by default process all events)
--decay - only decay particles, don't call UrQMD
--no-decay - only call UrQMD, don't decay particles
--t=tau_flat. UrQMD must have "event's frame" - all particles should have the same "freezout" time. If particle was created before this time then trajectory of this particle is extrapolated (if later then interpolated). This is serious limiation of this model because interpolated/extrapolated particles don't interact during inter/extrapolation (all rescattering are done later when UrQMD is called). 
-There are few ways to define this time
--t=min - start cascades when first particle is created 
--t=fmXX - star with fixed time (XX in fm/c) 
--t=av = - start with time equal to average freezout time
--t=max - start with time creation of last particle
+after so yo can remove them)<br />
+-s=N where you specify status of processed particles - other particles are not processed.<br />
+-n=N to specify number of events to process (by default process all events)<br />
+-decay - only decay particles, don't call UrQMD<br />
+-no-decay - only call UrQMD, don't decay particles<br />
+-t=tau_flat. UrQMD must have "event's frame" - all particles should have the same "freezout" time. If particle was created before this time then trajectory of this particle is extrapolated (if later then interpolated). This is serious limiation of this model because interpolated/extrapolated particles don't interact during inter/extrapolation (all rescattering are done later when UrQMD is called). <br />
+There are few ways to define this time<br />
+-t=min - start cascades when first particle is created <br />
+-t=fmXX - star with fixed time (XX in fm/c) <br />
+-t=av = - start with time equal to average freezout time<br />
+-t=max - start with time creation of last particle<br />
 Output tree there has 3 types of 
-status:
-0 - for bad particles (with PDG that is not supported in UrQMD)
-1 - for particles that passed UrQMD cascades
-2 - for particles that comes from weak decays
+status:<br />
+0 - for bad particles (with PDG that is not supported in UrQMD)<br />
+1 - for particles that passed UrQMD cascades<br />
+2 - for particles that comes from weak decays<br />
