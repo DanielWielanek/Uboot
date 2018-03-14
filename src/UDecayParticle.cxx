@@ -9,7 +9,7 @@
 #include "UDecayParticle.h"
 #include "TRandom.h"
 #include <iostream>
-#define DEBUG
+//#define DEBUG
 UDecayParticle::UDecayParticle(Int_t motherPDG):fMass(0),fGamma(0),fBranchRatio(NULL),fMotherPDG(motherPDG) {
 	fDecayChannelN = 0;
 	fDecays = NULL;
