@@ -70,7 +70,7 @@ void DecayEvent(UEvent *inEvent, UEvent *outEvent, TClonesArray *temp){
 	Int_t max_index = inEvent->GetNpa();
 	*outEvent = *inEvent;
 	for(int i=0;i<max_index;i++){
-		UParticle *prim = inEvent->GetParticle(i);
+		UParticle *prim = outEvent->GetParticle(i);
 		Int_t daughters = fPDG->DecayParticle(prim,temp,max_index);
 	}
 	for(int i=0;i<temp->GetEntriesFast();i++){
