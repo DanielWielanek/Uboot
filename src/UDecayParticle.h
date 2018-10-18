@@ -14,6 +14,7 @@
 #include <TDatabasePDG.h>
 #include "UDecayChannel.h"
 #include "UParticle.h"
+#define USE_BREIT_WIGNER
 /**
  * class for decaying particles
  */

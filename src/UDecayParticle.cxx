@@ -112,8 +112,9 @@ Int_t UDecayParticle::Decay(UParticle* mother, TClonesArray* daughter, Int_t shi
 			UParticle *dau2 = (UParticle*)daughter->UncheckedAt(size+1);
 			TLorentzVector sum = dau1->GetMomentum()+dau2->GetMomentum();
 			if(TMath::Abs(sum.M()-M)>1E-5){
-				std::cout<<"!! 2body decay "<<mother->GetPdg()<<" - >\t"<<M<<" "<<sum.M()<<std::endl;
+				std::cout<<"!! 2body decay "<<size<<" "<<size+1<<" "<<mother->GetPdg()<<" - >\t"<<M<<" "<<sum.M()<<std::endl;
 			}
+			std::cout<<mother->GetFirstChild()<< " "<<mother->GetLastChild()<<std::endl;
 #endif
 		return 2;
 	}break;
@@ -151,9 +152,13 @@ void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, UDec
 		tTime = 1E+10;
 	}else{
 		//M = BreitWigner(m1+m2);
+#ifdef USE_BREIT_WIGNER
 		do{
-		M = BreitWigner(mM);
+			M = BreitWigner(mM);
 		}while((m1+m2)>M);
+#else
+		M = m1+m2;
+#endif
 	    double tTau0 = mP.E() / (mP.M() * fGamma);
 	    // When it decays
 	    tTime = -tTau0 * TMath::Log(gRandom->Rndm());
