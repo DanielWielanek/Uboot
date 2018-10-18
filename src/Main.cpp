@@ -67,8 +67,8 @@ void ParCheck(TString par, TString flag,double &val){
 }
 void DecayEvent(UEvent *inEvent, UEvent *outEvent, TClonesArray *temp){
 	temp->Clear();
-	Int_t max_index = inEvent->GetNpa();
 	*outEvent = *inEvent;
+	Int_t max_index = outEvent->GetNpa();
 	for(int i=0;i<max_index;i++){
 		UParticle *prim = outEvent->GetParticle(i);
 		Int_t daughters = fPDG->DecayParticle(prim,temp,max_index);
@@ -123,6 +123,42 @@ int main(int argc, char *argv[]) {
 		if(par.EqualTo("-no-decay"))
 			no_decay = kTRUE;
 	}
+	if(tau>0) time_flag = 1;
+	//- configuration print
+	std::cout<<"***Configuration:***"<<std::endl;
+	if(remove_i==1)
+		std::cout<<"Removing temp files: ENABLED"<<std::endl;
+	else
+		std::cout<<"Removing temp files: DISABLED"<<std::endl;
+
+	if(decay_only){
+		std::cout<<"Mode: DECAY ONLY"<<std::endl;
+	}else{
+		if(no_decay)
+			std::cout<<"Mode: URQMD"<<std::endl;
+		else
+			std::cout<<"Mode: UrQMD+DECAY"<<std::endl;
+		if(status==-1E+9)
+			std::cout<<"Processing all particles"<<std::endl;
+		else
+			std::cout<<"Processing particles with status "<<(int)status<<" only"<<std::endl;
+		switch((int)time_flag){
+		case 0:
+			std::cout<<"tau mode : minimum "<<std::endl;
+			break;
+		case 1:
+			std::cout<<Form("tau mode : %4.2f fm/c ",tau)<<std::endl;
+			break;
+		case 2:
+			std::cout<<"tau mode : average "<<std::endl;
+			break;
+		case 3:
+			std::cout<<"tau mode : maximum "<<std::endl;
+			break;
+		}
+	}
+
+
 	if(decay_only){// work in decay mode
 		std::cout<<"*** working in decay mode only ***"<<std::endl;
 		fPDG = UPdgConvert::Instance();
@@ -142,7 +178,6 @@ int main(int argc, char *argv[]) {
 		delete fileOut;
 		return 1;
 	}else{//call UrQMD
-		if(tau>0) time_flag = 1;
 		bool remove = false;
 		if(remove_i==1.0)remove = true;
 		gSystem->Load("libTree");
@@ -151,7 +186,7 @@ int main(int argc, char *argv[]) {
 		U2U *convert = new U2U(file_in);
 		convert->SetNEvents(nevents);
 		convert->SetTimeFlag(time_flag);
-		if(status!=1E+9){
+		if(status!=-1E+9){
 			convert->SetStatus(status);
 		}
 		convert->SetFreezoutTime(tau);
