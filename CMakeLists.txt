@@ -9,9 +9,10 @@ include(UMacros)
 project(U2boot)
 find_package(ROOT REQUIRED)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb8")
-
-
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -ggdb8")
+if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
+  set (CMAKE_CXX_STANDARD 11)
+endif()
 add_subdirectory(src)
 add_subdirectory(data)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
