@@ -21,13 +21,14 @@ void UMerger::ReadUrQMD() {
     sscanf(read, "UQMD   version:       %d   1000  %d  output_file  %d", &urqmdVersion, &urqmdVersion, &format);
     // ---> Read rest of event header
   // line 2
+
     fUrQMDFile.getline(read,300);
     fUrQMDFile.getline(read, 300); // line 3
     fUrQMDFile.getline(read, 300); // line 4
-    fUrQMDFile.getline(read, 300); // line 5
+     fUrQMDFile.getline(read, 300); // line 5
     fUrQMDFile.getline(read, 300); // line 6
     if (urqmdVersion == URQMDVERSION[1])
-        for (int iline = 0; iline < 11; iline++) {
+        for (int iline = 0; iline < 8; iline++) { // is supressed //11
         	fUrQMDFile.getline(read, 300);
         }// line 7-17
     else if (urqmdVersion == URQMDVERSION[0])
@@ -51,7 +52,8 @@ void UMerger::ReadUrQMD() {
     	UItyp typ(ityp,i3);
         Int_t pdgID = fPDG->Ityp2Pdg(typ);
         if(pdgID==0){
-        	std::cout<<"EEEE "<<ityp<<" "<<i3<<std::endl;
+        	TLorentzVector x(ppz,ppy,ppz,e);
+        	std::cout<<"EEEE "<<ityp<<" "<<i3<<" "<<x.M()<<std::endl;
         }
         fEvent->AddParticle(itrack,pdgID,1,-1,0,0,0,child,ppx,ppy,ppz,e,x,y,z,t,1);//for UrQMD particles
     }
