@@ -16,12 +16,16 @@ UPdgConvert::UPdgConvert() {
 	Int_t ityp = 0;
 	Int_t pdgId = 0;
 	Int_t isospin = 0;
+	TString temp;
 	while (!pdgconv->eof()) {
 		ityp = isospin = pdgId = 0;
-		*pdgconv >> pdgId>>isospin>>ityp;
-		UItyp typ(ityp,isospin);
-		fPDG2Ityp[pdgId] = typ;;//pgd ti ityp
-		fItyp2PDG[typ]=pdgId;
+		*pdgconv >> temp>>isospin>>ityp;
+		if(!temp.BeginsWith("#")){
+			pdgId = temp.Atoi();
+			UItyp typ(ityp,isospin);
+			fPDG2Ityp[pdgId] = typ;;//pgd ti ityp
+			fItyp2PDG[typ]=pdgId;
+		}
 	}
 	pdgconv->close();
 	delete pdgconv;
@@ -80,27 +84,27 @@ UPdgConvert* UPdgConvert::Instance() {
 
 Char_t UPdgConvert::GetQuarkCode(Char_t quark, Bool_t anti){
 	switch(quark){
-	case 1:
+	case '1':
 		quark = 'd';
 		if(anti)quark='D';
 		break;
-	case 2:
+	case '2':
 		quark = 'u';
 		if(anti)quark='U';
 		break;
-	case 3:
+	case '3':
 		quark = 's';
 		if(anti)quark='S';
 		break;
-	case 4:
+	case '4':
 		quark = 'c';
 		if(anti)quark='C';
 		break;
-	case 5:
+	case '5':
 		quark = 'b';
 		if(anti)quark='B';
 		break;
-	case 6:
+	case '6':
 		quark = 't';
 		if(anti)quark='T';
 		break;
@@ -114,7 +118,7 @@ Char_t UPdgConvert::GetQuarkCode(Char_t quark, Bool_t anti){
 TString UPdgConvert::GetQuarks(Int_t pdg){
 	if(TMath::Abs(pdg)>999999) return "";
 	if(TMath::Abs(pdg)<=99) return "";
-	TString name = Form("%i",pdg);
+	TString name = Form("%i",TMath::Abs(pdg));
 	Bool_t meson = kFALSE;
 	if(name.Length()==3)
 		meson = kTRUE;
@@ -128,10 +132,9 @@ TString UPdgConvert::GetQuarks(Int_t pdg){
 	if(meson){//meson
 		Char_t quarkA = name[name.Length()-3];
 		Char_t quarkB = name[name.Length()-2];
-		quarkA = GetQuarkCode(quarkA,anti);
-		quarkB = GetQuarkCode(quarkB,!anti);
+		quarkA = GetQuarkCode(quarkA,!anti);
+		quarkB = GetQuarkCode(quarkB,anti);
 		quarks = Form("%c%c",quarkA,quarkB);
-		quarks = quarkA+quarkB;
 	}else{//baryon
 		Int_t isospin = 0;
 		Char_t quarkA = name[name.Length()-4];
@@ -172,29 +175,29 @@ Int_t UPdgConvert::Ityp2Pdg(UItyp pid) {
 }
 
 void UPdgConvert::Pdg2U(Int_t pdg_code, Int_t& ityp, Int_t& ichg, Int_t& i3){
-	TParticlePDG *part  = fPDG->GetParticle(pdg_code);
-	if(part){
-		ichg = GetCharge(pdg_code);
-		UItyp typ = Pdg2Ityp(pdg_code);
-		if(typ.GetItyp()==0){
-			typ = Pdg2Ityp(-pdg_code);
-			ityp = -typ.GetItyp();
-			i3 = -typ.GetI3();
-		}else{
-			ityp = typ.GetItyp();
-			i3 = typ.GetI3();
-		}
+	ichg = GetCharge(pdg_code);
+	UItyp typ = Pdg2Ityp(pdg_code);
+	if(typ.GetItyp()==0){
+		typ = Pdg2Ityp(-pdg_code);
+		ityp = -typ.GetItyp();
+		i3 = -typ.GetI3();
 	}else{
-		ityp = 9999;
+		ityp = typ.GetItyp();
+		i3 = typ.GetI3();
 	}
 }
 
 Int_t UPdgConvert::GetCharge(Int_t pdg_code) {
-	TParticlePDG *part  = fPDG->GetParticle(pdg_code);
-	if(part){
-		return part->Charge()/3;
+	TString q = GetQuarks(pdg_code);
+	Double_t charge =0;
+	for(int i=0;i<q.Length();i++){
+		charge +=GetQuarkCharge(q[i]);
 	}
-	return 0;
+	if(pdg_code>0&&q.Length()==2)
+		charge = TMath::Abs(charge);
+	if(pdg_code<0&&q.Length()==2)
+		charge = -TMath::Abs(charge);
+	return charge/3.0;
 }
 
 Bool_t UPdgConvert::Stable(Int_t pdg_code) {
@@ -268,13 +271,57 @@ UPdgConvert::~UPdgConvert() {
 }
 
 Int_t UPdgConvert::Status(Int_t pdg_code) {
+	if(pdg_code == 22) return 4;
 	TParticlePDG *particle = fPDG->GetParticle(pdg_code);
-	if(particle==NULL) return 0;
-	TString particle_class = particle->ParticleClass();
-	if(particle_class.Contains("Baryon")){
-		return 3;
-	}else if(particle_class.Contains("Meson")){
-		return 2;
+	if(particle!=NULL){
+		TString particle_class = particle->ParticleClass();
+		if(particle_class.Contains("Baryon")){
+			return 3;
+		}else if(particle_class.Contains("Meson")){
+			return 2;
+		}
+	}
+	return GetQuarks(pdg_code).Length();
+}
+
+Int_t UPdgConvert::GetQuarkCharge(Char_t char1) const {
+	switch(char1){
+		case 'u':
+			return 2;
+			break;
+		case 'U':
+			return -2;
+			break;
+		case 'd':
+			return -1;
+			break;
+		case 'D':
+			return 1;
+			break;
+		case 's':
+			return -1;
+			break;
+		case 'S':
+			return 1;
+			break;
+		case 'c':
+			return 2;
+			break;
+		case 'C':
+			return -2;
+			break;
+		case 'b':
+			return -1;
+			break;
+		case 'B':
+			return 1;
+			break;
+		case 't':
+			return 2;
+			break;
+		case 'T':
+			return -2;
+			break;
 	}
 	return 0;
 }

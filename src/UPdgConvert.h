@@ -26,6 +26,7 @@ class UPdgConvert : public TObject{
 	Int_t fIsoSpin[150];
 	Char_t GetQuarkCode(Char_t q, Bool_t anti);
 	TString GetQuarks(Int_t pdt);
+	Int_t GetQuarkCharge(Char_t)const;
 	Int_t CalcI3(Int_t pdg);
 	Int_t CalcS(Int_t pdg);
 	UItyp Pdg2Ityp(Int_t pid);
