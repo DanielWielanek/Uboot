@@ -15,7 +15,6 @@ download code from git then
 cd dowloaded_code
 mkdir build
 cd build 
-lll
 cmake -DCMAKE_INSTALL_PREFIX="here installation path" -DURMQD_PATH:STRING="path to urqmd model" ..
 make 
 make install
