@@ -34,6 +34,7 @@ private:
 	enum kFlag{
 		kMeson,
 		kBaryon,
+		kOther,
 		kUnknown,
 		kBad
 	};
@@ -54,6 +55,8 @@ private:
 	Bool_t fUseStatus;
 	Double_t fFreezoutTime;
 	TH1D *fFreezoutHisto;
+	Double_t *fTau;
+	Int_t fTauSize;
 	void SetCTOs();
 	void ReadUnigen();
 	void WriteUrQMD();

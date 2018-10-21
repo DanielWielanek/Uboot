@@ -12,7 +12,7 @@
 U2U::U2U(TString name) :
 fFlags(NULL),fFlagsSize(2000),fPDG(NULL),fTrashFile(NULL),
 fInputFile(NULL),fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
-fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),fFreezoutTime(0),fFreezoutHisto(NULL){
+fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),fFreezoutTime(0),fFreezoutHisto(NULL),fTau(NULL),fTauSize(0){
 }
 
 void U2U::Convert() {
@@ -47,10 +47,17 @@ void U2U::Convert() {
 }
 
 void U2U::Interpolate(Double_t t_min) {
+	if(fUrQMDEvent->GetNpa()>fTauSize){
+		if(fTau)
+			delete []fTau;
+		fTauSize = fUrQMDEvent->GetNpa()*2;
+		fTau = new Double_t[fTauSize];
+	}
 	for(int i=0;i<fUrQMDEvent->GetNpa();i++){
 		UParticle *part = fUrQMDEvent->GetParticle(i);
 		TLorentzVector mom = part->GetMomentum();
 		TVector3 boost = mom.BoostVector();
+		fTau[i] = part->T();
 		Double_t dt = part->T()-t_min;
 		part->SetX(part->X()-boost.X()*dt);
 		part->SetY(part->Y()-boost.Y()*dt);
@@ -110,6 +117,9 @@ void U2U::ReadUnigen() {
 		case 3:
 			fFlags[i]=kBaryon;
 			break;
+		case 4:
+			fFlags[i]=kOther;
+			break;
 		default:
 			fFlags[i] = kUnknown;
 			break;
@@ -119,7 +129,6 @@ void U2U::ReadUnigen() {
 			fFlags[i] = kUnknown;
 			continue;
 		}
-		//std::cout<<"PDG"<<pdg<< " "<<ityp<<std::endl;
 		if(TMath::Abs(ityp)>999){
 			fFlags[i]=kUnknown;
 			continue;
@@ -141,6 +150,14 @@ void U2U::ReadUnigen() {
 			fUrQMDEvent->AddParticle(*particle);
 		}
 	}
+	//copy others (photons)
+	for(int i=0;i<fEvent->GetNpa();i++){
+		UParticle *particle = fEvent->GetParticle(i);
+		if(fFlags[i]==kOther){
+			fUrQMDEvent->AddParticle(*particle);
+		}
+	}
+
 	for(int i=0;i<fEvent->GetNpa();i++){
 		UParticle *particle = fEvent->GetParticle(i);
 		if(fFlags[i]==kUnknown){
@@ -168,31 +185,23 @@ void U2U::WriteUrQMD() {
 	//	fUrQMDFIle<<"op  0    0    0    0    0    0    0    0    0    0    0    0    0    0    0  "<<std::endl;
 	//	fUrQMDFIle<<"op  0    0    0    0    0    0    1    0    1    0    0    0    0    2    1  "<<std::endl;
 	//	fUrQMDFIle<<"op  0    0    0    1    1    0    0    0    0    0    1 *  0    0    1    0  "<<std::endl;
-		int lopt= 0;
-		fUrQMDFile<<Form("%2s","op");
-		for(int i=0;i<15;i++){
-			fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
-		}
-		fUrQMDFile<<std::endl;
-		fUrQMDFile<<Form("%2s","op");
-		lopt = 15;
-		for(int i=0;i<15;i++){
-			fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
-		}
-		fUrQMDFile<<std::endl;
-		fUrQMDFile<<Form("%2s","op");
-		lopt = 30;
-		for(int i=0;i<15;i++){
-			fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
-		}
-		fUrQMDFile<<std::endl;
-		if(UQMD_VER>=3.4){
-			lopt = 45;
+
+		Int_t rows = 3;
+		if(UQMD_VER>=3.4)
+			rows = 4;
+
+		for(int j=0;j<rows;j++){
+			int lopt= j*15;
+			fUrQMDFile<<Form("%2s","op");
 			for(int i=0;i<15;i++){
-				fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
+				if((lopt+i)!=40){
+					fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
+				}else
+					fUrQMDFile<<"  1 *";
 			}
 			fUrQMDFile<<std::endl;
 		}
+
 	/*	fUrQMDFIle<<"op "<<fCTO[0+lopt]<<"  "<<fCTO[1+lopt]<<"  "<<fCTO[2+lopt]<<"  "<<fCTO[3+lopt]<<"  "<<fCTO[4+lopt]<<"  "<<fCTO[5+lopt]<<"  "
 				<<fCTO[6+lopt]<<"  "<<fCTO[7+lopt]<<"  "<<fCTO[8+lopt]<<"  "<<fCTO[9+lopt]<<"  "<<fCTO[10+lopt]
 				<<"  "<<fCTO[11+lopt]<<"  "<<fCTO[12+lopt]<<"  "<<fCTO[13+lopt]<<"  "<<fCTO[14+lopt]<<"  "<<std::endl;
@@ -239,11 +248,20 @@ void U2U::WriteUrQMD() {
 			}
 			//std::cout<<"xPDG\t"<<pdg<< "|"<<ityp<<"|"<<ichg<<"|"<<i3<<std::endl;
 			//std::cout<<"---\t"<<pdg<< "|"<<ityp_s<<"|"<<ichg_s<<"|"<<i3_s<<std::endl;
+			if(UQMD_VER>=3.4){
+				fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
+						Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
+						ityp_s<<i3_s<<ichg_s<<
+					//	"        0    0         0  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+						"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.00000000E+01"<<Form("%8d",i)
+						<<std::endl;
+			}else{
 			fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
 					Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
 					ityp_s<<i3_s<<ichg_s<<
-					"        0    0         0  "<<"0.10000000E+32  0.10000000E+00  0.10000000E+01"<<Form("%8d",i)
+					"        0    0         0  "<<"0.10000000E+32"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
 					<<std::endl;
+			}
 		}
 }
 
@@ -251,6 +269,8 @@ U2U::~U2U() {
 	if(fFreezoutHisto)
 		delete fFreezoutHisto;
 	delete []fFlags;
+	if(fTauSize>0)
+		delete []fTau;
 }
 
 TString U2U::Format(Double_t val) {
