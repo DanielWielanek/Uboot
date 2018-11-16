@@ -62,7 +62,7 @@ void Welcome(){
 	Print("  \\____/|____|_.__/ \\___/ \\___/ \\__|");
 	std::cout<<"*                                                                                        *"<<std::endl;
 	std::cout<<"*                                                                                        *"<<std::endl;
-	Print("        Urqmd2unigenBOOsTer v 1.1");
+	Print("        Urqmd2unigenBOOsTer v 1.3");
 	std::cout<<"******************************************************************************************"<<std::endl;
 }
 void ParCheck(TString par, TString flag,double &val){
@@ -71,7 +71,6 @@ void ParCheck(TString par, TString flag,double &val){
 			val = 1; //true value
 		}else{
 			TString sval = par(flag.Length(),par.Length());
-		std::cout<<"-----"<<sval<<std::endl;
 			val  = sval.Atof();
 		}
 	}
