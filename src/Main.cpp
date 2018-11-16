@@ -21,8 +21,18 @@
 #include "UEvent.h"
 #include "UParticle.h"
 #include "U2U.h"
+#include "U2A.h"
 #include "UMerger.h"
 UPdgConvert	*fPDG;
+Bool_t Remove;
+Bool_t NoDecay;
+Bool_t Afterburner;
+Bool_t DecayOnly;
+Bool_t FeedDown;
+Int_t TimeFlag;
+Int_t Nevents;
+Int_t Status;
+Double_t Tau;
 void Print(TString text){
 	text = Form("*              %s",text.Data());
 	Int_t add = 89 - text.Length();//20
@@ -61,6 +71,7 @@ void ParCheck(TString par, TString flag,double &val){
 			val = 1; //true value
 		}else{
 			TString sval = par(flag.Length(),par.Length());
+		std::cout<<"-----"<<sval<<std::endl;
 			val  = sval.Atof();
 		}
 	}
@@ -78,6 +89,188 @@ void DecayEvent(UEvent *inEvent, UEvent *outEvent, TClonesArray *temp){
 		outEvent->AddParticle(*part);
 	}
 }
+
+void UseUrQMD(TString file_in, TString file_out){
+	gSystem->Load("libTree");
+	gSystem->Exec("mkdir u2boot_temp");
+	Print("*** reading unigen file ***");
+	U2U *convert = new U2U(file_in);
+	if(FeedDown)
+		convert->TryDecay();
+	convert->SetNEvents(Nevents);
+//	std::cout<<"TIME FLAG"<<TimeFlag<<std::end;
+	convert->SetTimeFlag(TimeFlag);
+	if(Status!=-1E+9){
+		convert->SetStatus(Status);
+	}
+	convert->SetFreezoutTime(Tau);
+	convert->Convert();
+	Int_t total_events = convert->GetEvents();
+	delete convert;
+	// al text files ready time to convert
+	Print("*** staring UrQMD ***");
+	UrQMDCall *call = new UrQMDCall(Remove);
+	call->Convert(Nevents);
+	Print("*** merging files ***");
+	UMerger *merger = new UMerger(file_out,!NoDecay);
+	Print("*** cleaning up ***");
+	delete merger;
+	delete call;//dlete txt files if necessary;
+}
+void UseAfterBurner(TString file_in, TString file_out){
+	gSystem->Load("libTree");
+	gSystem->Exec("mkdir u2boot_temp");
+	Print("*** reading unigen file ***");
+	U2A *convert = new U2A(file_in);
+	Int_t total_events = convert->GetTotalEvents();
+	if(Nevents>0)
+		total_events = Nevents;
+	if(Status!=-1E+9){
+		convert->SetStatus(Status);
+	}
+	gSystem->Exec("mkdir u2boot_temp");
+	TString path = gSystem->Getenv("URQMD_AFTERBURNER");
+	TString pwd = gSystem->Getenv("PWD");
+	std::cout<<"Processing afterburner events"<<std::endl;
+	gSystem->Exec(Form("cd %s",path.Data()));
+	for(int i=0;i<total_events;i++){
+		convert->Convert(i);
+		TString inp = Form("%s/u2boot_temp/test_U2boot_%i",pwd.Data(),i);
+		TString out = Form("%s/u2boot_temp/test_U2after_%i",pwd.Data(),i);
+		TString osc = Form("%s/u2boot_temp/test_U2oscar_%i",pwd.Data(),i);
+		gSystem->Exec(Form("%s/./afterburner %s %s %s",path.Data(),inp.Data(),osc.Data(),out.Data()));
+	}
+	gSystem->Exec(Form("cd %s",pwd.Data()));
+	delete convert;
+	if(Remove){
+		gSystem->Exec("rm -rf u2boot_temp");
+	}
+
+	Print("*** merging files ***");
+	UMerger *merger = new UMerger(file_out,!NoDecay,UMerger::kAfterburner);
+	Print("*** cleaning up ***");
+	delete merger;
+}
+void CheckParams(Int_t argc, char*argv[]){
+	TimeFlag  = 0;
+	Remove = kFALSE;
+	Nevents = -1;
+	NoDecay = kFALSE;
+	Afterburner = kFALSE;
+	DecayOnly = kFALSE;
+	FeedDown = kFALSE;
+	Tau = -1;
+	Status = -1E+9;
+	Double_t x;
+	Double_t y = -1E+9;
+	for(int i=3;i<argc;i++){
+		x = -1E+9;
+		ParCheck(argv[i],"-f",x);
+		if(x==1){
+			Remove = kTRUE;
+			continue;
+		}
+		ParCheck(argv[i],"-n=",x);
+		if(x>0){
+			Nevents = x;
+			continue;
+		}
+		ParCheck(argv[i],"-t=fmc",x);
+		if(x!=y){
+			Tau = x;
+			std::cout<<"\t************"<<x<<std::endl;
+			if(Tau>=0) TimeFlag = 1;
+			continue;
+		}
+		ParCheck(argv[i],"-t=av",x);
+		if(x!=y){
+			TimeFlag = 2;
+			continue;
+		}
+		ParCheck(argv[i],"-t=max",x);
+		if(x!=y){
+			TimeFlag = 3;
+			continue;
+		}
+		ParCheck(argv[i],"-s=",x);
+		if(x!=y){
+			Status = x;
+			continue;
+		}
+		TString par = argv[i];
+		if(par.EqualTo("-decay")){
+			DecayOnly = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-no-decay")){
+			NoDecay = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-afterburner")){
+			Afterburner = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-feeddiwb")){
+			FeedDown = kTRUE;
+			continue;
+		}
+	}
+
+	//- configuration print
+	std::cout<<"***Configuration:***"<<std::endl;
+	if(Remove==kTRUE)
+		std::cout<<"Removing temp files: ENABLED"<<std::endl;
+	else
+		std::cout<<"Removing temp files: DISABLED"<<std::endl;
+
+	if(DecayOnly){
+		std::cout<<"Mode: DECAY ONLY"<<std::endl;
+	}else{
+		TString model = "URQMD";
+		if(Afterburner){
+			model = "AFTERBURNER";
+		}
+
+		if(NoDecay)
+			std::cout<<"Mode: "<<model<<std::endl;
+		else
+			std::cout<<"Mode: "<<model<<"+DECAY"<<std::endl;
+		if(Status==-1E+9)
+			std::cout<<"Processing all particles"<<std::endl;
+		else
+			std::cout<<"Processing particles with status "<<(int)Status<<" only"<<std::endl;
+		switch((int)TimeFlag){
+		case 0:
+			std::cout<<"tau mode : minimum "<<std::endl;
+			break;
+		case 1:
+			std::cout<<Form("tau mode : %4.2f fm/c ",Tau)<<std::endl;
+			break;
+		case 2:
+			std::cout<<"tau mode : average "<<std::endl;
+			break;
+		case 3:
+			std::cout<<"tau mode : maximum "<<std::endl;
+			break;
+		}
+	}
+}
+void DecayOn(TString file_in, TString file_out){
+	std::cout<<"*** working in decay mode only ***"<<std::endl;
+	fPDG = UPdgConvert::Instance();
+	TClonesArray *array = new TClonesArray("UParticle",1000);
+	UFile *fileIn = new UFile(file_in,"");
+	UFile *fileOut = new UFile(file_out,"recreate");
+	UEvent *outEvent = fileOut->GetEvent();
+	for(int i=0;i<fileIn->GetEntries();i++){
+		fileIn->GetEntry(i);
+		UEvent *inEvent = fileIn->GetEvent();
+		DecayEvent(inEvent,outEvent,array);
+		fileOut->Fill();
+	}
+	delete fileIn;
+	delete fileOut;
+}
 int main(int argc, char *argv[]) {
 	if(argc<3){
 		std::cout<<"usage :"<<std::endl;
@@ -93,115 +286,29 @@ int main(int argc, char *argv[]) {
 		std::cout<<"\t\t-t=fmcXX start with fixed time XX fm/c"<<std::endl;
 		std::cout<<"\t\t-t=av start with averaged time of freezout"<<std::endl;
 		std::cout<<"\t\t-t=max start with time where most particles are created"<<std::endl;
+		std::cout<<"-feeddown try decay highly exotic particles before UrQMD"<<std::endl;
+		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
 		return 0;
 	}
 	Welcome();
 	TString file_in = argv[1];
 	TString file_out = argv[2];
-	double remove_i = 0;
-	double nevents = -1;
-	double time_flag = 0;
-	Bool_t no_decay = kFALSE;
-	double_t tau  = 0;
-	double status=-1E+9;
-	Bool_t decay_only =kFALSE;
-	for(int i=3;i<argc;i++){
-		double dummy  = 0;
-		ParCheck(argv[i],"-f",remove_i);
-		ParCheck(argv[i],"-n=",nevents);
-		ParCheck(argv[i],"-t=fmc",tau);
-		ParCheck(argv[i],"-t=av",dummy);
-		if(dummy) time_flag = 2;
-		ParCheck(argv[i],"-t=max",dummy);
-		if(dummy) time_flag  =3;
-		ParCheck(argv[i],"-s=",status);
-		TString par = argv[i];
-		if(par.EqualTo("-decay")){
-			decay_only = kTRUE;
-			break;
-		}
-		if(par.EqualTo("-no-decay"))
-			no_decay = kTRUE;
-	}
-	if(tau>0) time_flag = 1;
-	//- configuration print
-	std::cout<<"***Configuration:***"<<std::endl;
-	if(remove_i==1)
-		std::cout<<"Removing temp files: ENABLED"<<std::endl;
-	else
-		std::cout<<"Removing temp files: DISABLED"<<std::endl;
 
-	if(decay_only){
-		std::cout<<"Mode: DECAY ONLY"<<std::endl;
-	}else{
-		if(no_decay)
-			std::cout<<"Mode: URQMD"<<std::endl;
-		else
-			std::cout<<"Mode: UrQMD+DECAY"<<std::endl;
-		if(status==-1E+9)
-			std::cout<<"Processing all particles"<<std::endl;
-		else
-			std::cout<<"Processing particles with status "<<(int)status<<" only"<<std::endl;
-		switch((int)time_flag){
-		case 0:
-			std::cout<<"tau mode : minimum "<<std::endl;
-			break;
-		case 1:
-			std::cout<<Form("tau mode : %4.2f fm/c ",tau)<<std::endl;
-			break;
-		case 2:
-			std::cout<<"tau mode : average "<<std::endl;
-			break;
-		case 3:
-			std::cout<<"tau mode : maximum "<<std::endl;
-			break;
-		}
-	}
+	CheckParams(argc,argv);
 
-
-	if(decay_only){// work in decay mode
-		std::cout<<"*** working in decay mode only ***"<<std::endl;
-		fPDG = UPdgConvert::Instance();
-		TClonesArray *array = new TClonesArray("UParticle",1000);
-		TString file_in = argv[1];
-		TString file_out = argv[2];
-		UFile *fileIn = new UFile(file_in,"");
-		UFile *fileOut = new UFile(file_out,"recreate");
-		UEvent *outEvent = fileOut->GetEvent();
-		for(int i=0;i<fileIn->GetEntries();i++){
-			fileIn->GetEntry(i);
-			UEvent *inEvent = fileIn->GetEvent();
-			DecayEvent(inEvent,outEvent,array);
-			fileOut->Fill();
-		}
-		delete fileIn;
-		delete fileOut;
-		return 1;
-	}else{//call UrQMD
-		bool remove = false;
-		if(remove_i==1.0)remove = true;
+	if(DecayOnly){// work in decay mode
+		DecayOn(file_in, file_out);
+	}else{//call rescatter
 		gSystem->Load("libTree");
 		gSystem->Exec("mkdir u2boot_temp");
-		Print("*** reading unigen file ***");
-		U2U *convert = new U2U(file_in);
-		convert->SetNEvents(nevents);
-		convert->SetTimeFlag(time_flag);
-		if(status!=-1E+9){
-			convert->SetStatus(status);
+		if(Afterburner==kFALSE){//cal UrQMD
+			UseUrQMD(file_in,  file_out);
+		}else{// call other afterburner
+			gSystem->Load("libTree");
+			gSystem->Exec("mkdir u2boot_temp");
+			UseAfterBurner(file_in, file_out);
+
 		}
-		convert->SetFreezoutTime(tau);
-		convert->Convert();
-		Int_t total_events = convert->GetEvents();
-		delete convert;
-		Print("*** staring UrQMD ***");
-		UrQMDCall *call = new UrQMDCall(total_events,remove);
-		Print("*** merging files ***");
-		UMerger *merger = new UMerger(file_out,!no_decay);
-		Print("*** cleaning up ***");
-		delete merger;
-		delete call;//dlete txt files if necessary
-		//ok now file is converted
-		return 1;
 	}
 
 }

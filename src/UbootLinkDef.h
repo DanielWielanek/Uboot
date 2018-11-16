@@ -8,6 +8,7 @@
 #endif
 
 #pragma link C++ class U2U+;
+#pragma link C++ class U2A+;
 #pragma link C++ class UItyp+;
 #pragma link C++ class UEvent+;
 #pragma link C++ class UParticle+;

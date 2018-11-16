@@ -12,7 +12,12 @@
 U2U::U2U(TString name) :
 fFlags(NULL),fFlagsSize(2000),fPDG(NULL),fTrashFile(NULL),
 fInputFile(NULL),fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
-fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),fFreezoutTime(0),fFreezoutHisto(NULL),fTau(NULL),fTauSize(0){
+fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
+fTryDecay(kFALSE),
+fFreezoutTime(0),fFreezoutHisto(NULL),fTau(NULL),fTauSize(0),
+fBadPdg(82)
+{
+	fTempDaughters = new TClonesArray("UParticle");
 }
 
 void U2U::Convert() {
@@ -22,7 +27,7 @@ void U2U::Convert() {
 	fTrashFile = new UFile("u2boot_temp/trash.root","recreate");
 	fEvent = fInputFile->GetEvent();
 	fEventTrash = fTrashFile->GetEvent();
-	fUrQMDFile.open("u2boot_temp/test_U2boot");
+
 	fUrQMDEvent = new UEvent();
 	for(int i=0;i<60;i++){
 		fCTO[i] = 0 ;
@@ -38,12 +43,12 @@ void U2U::Convert() {
 	for(int i=0;i<fMaxEvents;i++){
 		fInputFile->GetEntry(i);
 		ReadUnigen();
+		fUrQMDFile.open(Form("u2boot_temp/test_U2boot_%i",i));
 		WriteUrQMD();
+		fUrQMDFile.close();
 	}
 	delete fInputFile;
 	delete fTrashFile;
-	fUrQMDFile.close();
-
 }
 
 void U2U::Interpolate(Double_t t_min) {
@@ -63,6 +68,7 @@ void U2U::Interpolate(Double_t t_min) {
 		part->SetY(part->Y()-boost.Y()*dt);
 		part->SetY(part->Z()-boost.Z()*dt);
 		part->SetT(t_min);
+
 	}
 }
 
@@ -74,6 +80,14 @@ void U2U::SetCTOs() {
 	fCTO[29] = 1;//frozen fermi approximation in cascade mode  enabled
 	fCTO[33] = 1;//resonance lifemtysmes gamma = 1/gamm_pole
 	fCTO[34] = 1;//gnerate hight precission tables file enabled
+
+
+//	fCTO[38] = 1;
+//	fCTO[43] = 0;
+
+
+
+	fCTO[39] = 1;
 	fCTO[40] = 1;//extended output for f14
 //	fCTO[43] = "1  ";//pytha call for hard scatterings - enabled
 
@@ -89,6 +103,10 @@ void U2U::ReadUnigen() {
 	fEventTrash->SetPhi(fEvent->GetPhi());
 	fEventTrash->SetEventNr(fEvent->GetEventNr());
 	TParticlePDG *particle_pdg = NULL;
+	Int_t feeddown = 0;
+	if(fTryDecay){
+		feeddown = DecayForUrQMD();
+	}
 	if(fEvent->GetNpa()>fFlagsSize){
 		fFlagsSize = fEvent->GetNpa()*2;
 		delete []fFlags;
@@ -109,6 +127,10 @@ void U2U::ReadUnigen() {
 			}
 		}
 		Int_t pdg = particle->GetPdg();
+		if(pdg==fBadPdg){// bad PDG
+			fFlags[i] = kBad;
+			continue;
+		}
 		Int_t stat = fPDG->Status(pdg);
 		switch(stat){
 		case 2:
@@ -123,6 +145,9 @@ void U2U::ReadUnigen() {
 		default:
 			fFlags[i] = kUnknown;
 			break;
+		}
+		if(pdg==22){
+			fFlags[i]=kUnknown;
 		}
 		fPDG->Pdg2U(pdg,ityp,ichg,i3);
 		if(ityp==0){
@@ -164,13 +189,13 @@ void U2U::ReadUnigen() {
 			fEventTrash->AddParticle(*particle);
 		}
 	}
-	std::cout<<fEventTrash->GetNpa()<<std::endl;
+
 	fTrashFile->Fill();
 	Int_t lost = fEvent->GetNpa()-fUrQMDEvent->GetNpa();
 	Interpolate(t_min);
 	Double_t lost_frac = ((Double_t)lost)/((Double_t)fEvent->GetNpa());
-	std::cout<<"Particles\tTotal/Good/Bad/Unknown\t"<<fEvent->GetNpa()<<"/"<<fUrQMDEvent->GetNpa()<<"/"<<bad_particles<<"/"<<fEventTrash->GetNpa()<<std::endl;
-
+	std::cout<<"Particles\tTotal/Good/Bad/Unknown/FeedDown\t"<<fEvent->GetNpa()<<"/"<<fUrQMDEvent->GetNpa()<<"/"<<bad_particles<<"/"<<fEventTrash->GetNpa()<<"/"<<feeddown<<std::endl;
+	std::cout<<"Tau:\t"<<t_min<<" "<<fTimeFlag<<std::endl;
 }
 
 void U2U::WriteUrQMD() {
@@ -179,7 +204,8 @@ void U2U::WriteUrQMD() {
 		fUrQMDFile<<"transformation betas (NN,lab,pro)     0.0000000  0.9634189 -0.9634189"<<std::endl;
 		fUrQMDFile<<"impact_parameter_real/min/max(fm):   "<<Form("%4.2f",fUrQMDEvent->GetB())<<"  0.00 13.00  total_cross_section(mbarn):    5309.29"<<std::endl;
 		fUrQMDFile<<"equation_of_state:    0  E_lab(GeV/u): 0.2424E+02  sqrt(s)(GeV): 0.7000E+01  p_lab(GeV/u): 0.2516E+02"<<std::endl;
-		int evN = fUrQMDEvent->GetEventNr();
+		int evN = fUrQMDEvent->GetNpa();
+	//	fDebugFile<<"# " <<evN<<std::endl;
 		TString number = Form("%i",evN);
 		fUrQMDFile<<"event#"<<Form("%10i",evN)<<" random seed:  1486911827 (auto)   total_time(fm/c):        0 Delta(t)_O(fm/c):            0"<<std::endl;
 	//	fUrQMDFIle<<"op  0    0    0    0    0    0    0    0    0    0    0    0    0    0    0  "<<std::endl;
@@ -194,10 +220,10 @@ void U2U::WriteUrQMD() {
 			int lopt= j*15;
 			fUrQMDFile<<Form("%2s","op");
 			for(int i=0;i<15;i++){
-				if((lopt+i)!=40){
+				//if((lopt+i)!=40){
 					fUrQMDFile<<Form("%3d%2s",fCTO[lopt+i],"  ");
-				}else
-					fUrQMDFile<<"  1 *";
+				//}else
+				//	fUrQMDFile<<"  1 *";
 			}
 			fUrQMDFile<<std::endl;
 		}
@@ -248,12 +274,14 @@ void U2U::WriteUrQMD() {
 			}
 			//std::cout<<"xPDG\t"<<pdg<< "|"<<ityp<<"|"<<ichg<<"|"<<i3<<std::endl;
 			//std::cout<<"---\t"<<pdg<< "|"<<ityp_s<<"|"<<ichg_s<<"|"<<i3_s<<std::endl;
+			//fDebugFile<<part->GetPdg()<<" "<<part->T()<<" "<<part->X()<<" "<<part->Y()<<" "<<part->Z()<<" "<<part->E()<<" "<<
+		//			part->Px()<< " "<<part->Py()<< " "<<part->Pz()<<std::endl;
 			if(UQMD_VER>=3.4){
 				fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
 						Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
 						ityp_s<<i3_s<<ichg_s<<
-					//	"        0    0         0  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
-						"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.00000000E+01"<<Form("%8d",i)
+						"        0    0         0  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+					//	"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.0000000E+01"<<Form("%8d",i)
 						<<std::endl;
 			}else{
 			fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
@@ -271,6 +299,8 @@ U2U::~U2U() {
 	delete []fFlags;
 	if(fTauSize>0)
 		delete []fTau;
+	if(fTempDaughters)
+		delete fTempDaughters;
 }
 
 TString U2U::Format(Double_t val) {
@@ -313,4 +343,51 @@ Double_t U2U::EstimateTime() {
 		break;
 	}
 
+}
+
+Int_t U2U::DecayForUrQMD() {
+	fTempDaughters->Clear();
+	Int_t ityp, ichg,i3;
+	for(int i=0;i<fEvent->GetNpa();i++){
+		UParticle *particle = fEvent->GetParticle(i);
+		if(fUseStatus){
+			//bad particle skip decays
+			if(particle->GetStatus()!=fStatus){
+				continue;
+			}
+			Int_t pdg = particle->GetPdg();
+			fPDG->Pdg2U(pdg,ityp,ichg,i3);
+			if(ityp==0){//unknown for UrQMD try decay
+				fTempDaughters->Clear();
+				TryDecay(particle,0);
+			}
+		}
+	}
+	for(int i=0;i<fTempDaughters->GetEntriesFast();i++){
+		fEvent->AddParticle(*(UParticle*)fTempDaughters->UncheckedAt(i));
+	}
+	return fTempDaughters->GetEntriesFast();
+}
+
+Bool_t U2U::TryDecay(UParticle* p, Int_t pos) {
+	Int_t ityp, ichg,i3;
+	Int_t shift = fTempDaughters->GetEntriesFast();
+	Int_t daughters = fPDG->DecayParticle(p, fTempDaughters, pos);
+	if(daughters!=0){
+		/**
+		 * success -> we have decay!
+		 * mark particle as "bad" by setting dummy PDG
+		 */
+		p->SetPdg(fBadPdg);
+		for(int i=0;i<daughters;i++){
+			UParticle *daughter = (UParticle*)fTempDaughters->At(shift+i);
+			fPDG->Pdg2U(daughter->GetPdg(),ityp,ichg,i3);
+			if(ityp==0){// bad daugher try decay
+				TryDecay(daughter, 0);
+			}
+		}
+	}else{//no daughter
+		return kFALSE;
+	}
+	return kTRUE;
 }

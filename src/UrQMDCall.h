@@ -18,13 +18,14 @@
  * class for calling UrQMD
  */
 class UrQMDCall : public TObject{
-	Int_t fNEvents;
 	Bool_t fRemove;
+	Int_t fCalls;
 	void GenerateInput();
-	void GenerateRunQMD();
-	void RunQMD();
+	void GenerateRunQMD(Int_t event);
+	void RunQMD(Int_t event);
 public:
-	UrQMDCall(Int_t nevents=1, Bool_t remove = kTRUE);
+	UrQMDCall(Bool_t remove = kTRUE);
+	void Convert(Int_t nevents);
 	virtual ~UrQMDCall();
 	ClassDef(UrQMDCall,1)
 };

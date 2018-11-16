@@ -7,6 +7,7 @@ set(SRC
 UParticle.cxx 
 UEvent.cxx 
 U2U.cxx 
+U2A.cxx
 UrQMDCall.cxx
 UPdgConvert.cxx
 UMerger.cxx

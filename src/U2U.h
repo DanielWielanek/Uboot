@@ -8,7 +8,7 @@
  */
 #ifndef U2U_H_
 #define U2U_H_
-#define UQMD_VER 3.2
+#define UQMD_VER 3.4
 #include <TObject.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
@@ -36,7 +36,8 @@ private:
 		kBaryon,
 		kOther,
 		kUnknown,
-		kBad
+		kBad,
+		kRemovable
 	};
 	std::ofstream fUrQMDFile;
 	Int_t *fFlags;
@@ -49,25 +50,34 @@ private:
 	UEvent *fUrQMDEvent;
 	UEvent *fEventTrash;
 	TString fFilename;
+	TClonesArray *fTempDaughters;
 	Int_t fTimeFlag;
 	Int_t fMaxEvents;
 	Int_t fStatus;
 	Bool_t fUseStatus;
+	Bool_t fTryDecay;
 	Double_t fFreezoutTime;
 	TH1D *fFreezoutHisto;
 	Double_t *fTau;
 	Int_t fTauSize;
+	const Int_t fBadPdg;
 	void SetCTOs();
 	void ReadUnigen();
 	void WriteUrQMD();
 	Double_t EstimateTime();
 	void Interpolate(Double_t t_min);
 	TString Format(Double_t val);
+	Bool_t TryDecay(UParticle *p, Int_t pos);
+	Int_t DecayForUrQMD();
 public:
 	/**
 	 * @param name of Unigen file, files are converted to u2boot_temp/test_U2boot"
 	 */
 	U2U(TString name="");
+	/**
+	 * try to decay unstable particles that cannot be processed by UrQMD
+	 */
+	void TryDecay(){fTryDecay = kTRUE;};
 	/**
 	 *
 	 * @param n number of events to conversion

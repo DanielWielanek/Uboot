@@ -28,7 +28,7 @@ void UMerger::ReadUrQMD() {
      fUrQMDFile.getline(read, 300); // line 5
     fUrQMDFile.getline(read, 300); // line 6
     if (urqmdVersion == URQMDVERSION[1])
-        for (int iline = 0; iline < 8; iline++) { // is supressed //11
+        for (int iline = 0; iline < 11; iline++) { // is supressed //11
         	fUrQMDFile.getline(read, 300);
         }// line 7-17
     else if (urqmdVersion == URQMDVERSION[0])
@@ -54,15 +54,15 @@ void UMerger::ReadUrQMD() {
         if(pdgID==0){
         	TLorentzVector x(ppz,ppy,ppz,e);
         	std::cout<<"EEEE "<<ityp<<" "<<i3<<" "<<x.M()<<std::endl;
+        	continue;
         }
         fEvent->AddParticle(itrack,pdgID,1,-1,0,0,0,child,ppx,ppy,ppz,e,x,y,z,t,1);//for UrQMD particles
     }
     fUrQMDFile.getline(read,300);//read cin whitespace
 }
 
-UMerger::UMerger(TString outFile,Bool_t decay):fDecay(decay) {
+UMerger::UMerger(TString outFile,Bool_t decay, eUMergerMode mode):fDecay(decay) {
 	fEvent = new UEvent();
-	fUrQMDFile.open("u2boot_temp/test.f13");
 	fPDG = UPdgConvert::Instance();
     fDecayedArray = new TClonesArray("UParticle",1000);
 	UFile *trashFile = new UFile("u2boot_temp/trash.root");
@@ -71,8 +71,17 @@ UMerger::UMerger(TString outFile,Bool_t decay):fDecay(decay) {
 	fEvent = outFIle->GetEvent();
 	Int_t nevents = trashFile->GetEntries();
 	for(int i=0;i<nevents;i++){
+		if(mode==kUrQMD)
+			fUrQMDFile.open(Form("u2boot_temp/test.f13_%i",i));
 		fEvent->Clear();
-		ReadUrQMD();
+		switch(mode){
+		case kUrQMD:
+			ReadUrQMD();
+			break;
+		case kAfterburner:
+			ReadAfterburner(i);
+			break;
+		}
 		trashFile->GetEntry(i);
 		fEvent->SetEventNr(trash_event->GetEventNr());
 		fEvent->SetB(trash_event->GetB());
@@ -88,10 +97,12 @@ UMerger::UMerger(TString outFile,Bool_t decay):fDecay(decay) {
 		if(fDecay)
 			DecayEvent();
 		outFIle->Fill();
+		if(mode==kUrQMD)
+			fUrQMDFile.close();
 	}
 	delete outFIle;
 	delete trashFile;
-	fUrQMDFile.close();
+
 }
 
 void UMerger::DecayEvent() {
@@ -111,3 +122,8 @@ UMerger::~UMerger() {
 	if(fDecayedArray) delete fDecayedArray;
 }
 
+void UMerger::ReadAfterburner(Int_t event) {
+	fUrQMDFile.open(Form("u2boot_temp/test_U2after_%i",event));
+	ReadUrQMD();
+    fUrQMDFile.close();
+}

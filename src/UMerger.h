@@ -34,9 +34,14 @@ class UMerger : public TObject {
 	TClonesArray *fDecayedArray;//[1000]
 	Bool_t fDecay;
 	void ReadUrQMD();
+	void ReadAfterburner(Int_t event);
 	void DecayEvent();
 public:
-	UMerger(TString outFile="data.root", Bool_t decay=kTRUE);
+	enum eUMergerMode{
+		kUrQMD,
+		kAfterburner
+	};
+	UMerger(TString outFile="data.root", Bool_t decay=kTRUE, eUMergerMode=kUrQMD);
 	virtual ~UMerger();
 	ClassDef(UMerger,1)
 };
