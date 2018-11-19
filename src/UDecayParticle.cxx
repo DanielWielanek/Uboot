@@ -8,6 +8,7 @@
  */
 #include "UDecayParticle.h"
 #include "TRandom.h"
+#include "UItyp.h"
 #include <iostream>
 //#define DEBUG
 UDecayParticle::UDecayParticle(Int_t motherPDG):fMass(0),fGamma(0),fBranchRatio(NULL),fMotherPDG(motherPDG) {
@@ -198,8 +199,8 @@ void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, UDec
 	daughter2->SetMomentum(dau2);
 	daughter1->SetPosition(X,Y,Z,T);
 	daughter2->SetPosition(X,Y,Z,T);
-	daughter1->SetStatus(2);
-	daughter2->SetStatus(2);
+	daughter1->SetStatus(STATUS_DECAY);
+	daughter2->SetStatus(STATUS_DECAY);
 	mother->SetDecay(1);
 	mother->SetFirstChild(daughter1->GetIndex());
 	mother->SetLastChild(daughter2->GetIndex());
@@ -314,9 +315,9 @@ void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, UDec
 	  daughter1->SetIndex(shift+size);
 	  daughter2->SetIndex(shift+size+1);
 	  daughter3->SetIndex(shift+size+2);
-	  daughter1->SetStatus(2);
-	  daughter2->SetStatus(2);
-	  daughter3->SetStatus(2);
+	  daughter1->SetStatus(STATUS_DECAY);
+	  daughter2->SetStatus(STATUS_DECAY);
+	  daughter3->SetStatus(STATUS_DECAY);
 	  mother->SetFirstChild(daughter1->GetIndex());
 	  mother->SetLastChild(daughter3->GetIndex());
 }

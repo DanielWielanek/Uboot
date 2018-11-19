@@ -10,6 +10,12 @@
 #define SRC_UITYP_H_
 #include <TObject.h>
 #include <map>
+
+#define STATUS_DECAY 3
+#define STATUS_URQMD_PRIM 1
+#define STATUS_URQMD_SEC 2
+#define STATUS_TRASH 0
+
 /**
  * class that hold UrQMD typ and isospin
  */
