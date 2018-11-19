@@ -65,7 +65,7 @@ void Welcome(){
 	Print("  \\____/|____|_.__/ \\___/ \\___/ \\__|");
 	std::cout<<"*                                                                                        *"<<std::endl;
 	std::cout<<"*                                                                                        *"<<std::endl;
-	Print("        Urqmd2unigenBOOsTer v 1.4");
+	Print("        Urqmd2unigenBOOsTer v 2.0");
 	std::cout<<"******************************************************************************************"<<std::endl;
 }
 void ParCheck(TString par, TString flag,double &val){

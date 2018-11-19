@@ -1,0 +1,21 @@
+--- coload.f	2014-07-31 15:06:29.000000000 +0200
++++ coload_new.f	2018-11-19 22:03:15.856895499 +0100
+@@ -401,6 +401,9 @@
+                if (dst2.lt.hit_sphere) then
+ c does the collision occur in the current time step?
+                   if (tcoll.gt.0.d0.and.tcoll.lt.tmin) then
++c for afterburner 1)
++                  if (((tcoll+acttime).ge.tform(i).and.
++     &                 (tcoll+acttime).ge.tform(j))) then
+ c     get sqrt(s) and total cross section
+                      sqrs = sqrts(i,j)
+ c
+@@ -439,6 +442,8 @@
+                      endif
+                   endif
+                endif
++c for afterburner 2)
++            endif
+             endif
+  101     continue
+          if (imin.gt.0) then
