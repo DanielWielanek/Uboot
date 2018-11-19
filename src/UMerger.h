@@ -29,13 +29,21 @@
  */
 class UMerger : public TObject {
 	std::ifstream fUrQMDFile;
+	std::ifstream fUrQMDFileIn;
 	UEvent *fEvent;
+	UEvent *fEventIn;
 	UPdgConvert *fPDG;
 	TClonesArray *fDecayedArray;//[1000]
 	Bool_t fDecay;
 	void ReadUrQMD();
+	void ReadUrQMDIn();
+	void ReadUrQMDOut();
+	void MatchUrQMD();
 	void ReadAfterburner(Int_t event);
 	void DecayEvent();
+	UParticle *GetMatched(UParticle *p, Int_t pos);
+	Bool_t AreSimilar(UParticle *p1, UParticle *p2)const;
+	TLorentzVector Extrapolate(UParticle *fluid)const;
 public:
 	enum eUMergerMode{
 		kUrQMD,

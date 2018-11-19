@@ -62,13 +62,13 @@ void U2U::Interpolate(Double_t t_min) {
 		UParticle *part = fUrQMDEvent->GetParticle(i);
 		TLorentzVector mom = part->GetMomentum();
 		TVector3 boost = mom.BoostVector();
-		fTau[i] = part->T();
-		Double_t dt = part->T()-t_min;
-		part->SetX(part->X()-boost.X()*dt);
-		part->SetY(part->Y()-boost.Y()*dt);
-		part->SetY(part->Z()-boost.Z()*dt);
-		part->SetT(t_min);
 
+		fTau[i] = part->T();
+		Double_t dt = t_min-part->T();
+		part->SetX(part->X()+boost.X()*dt);
+		part->SetY(part->Y()+boost.Y()*dt);
+		part->SetZ(part->Z()+boost.Z()*dt);
+		part->SetT(part->T()+dt);
 	}
 }
 
@@ -195,11 +195,11 @@ void U2U::ReadUnigen() {
 	Interpolate(t_min);
 	Double_t lost_frac = ((Double_t)lost)/((Double_t)fEvent->GetNpa());
 	std::cout<<"Particles\tTotal/Good/Bad/Unknown/FeedDown\t"<<fEvent->GetNpa()<<"/"<<fUrQMDEvent->GetNpa()<<"/"<<bad_particles<<"/"<<fEventTrash->GetNpa()<<"/"<<feeddown<<std::endl;
-	std::cout<<"Tau:\t"<<t_min<<" "<<fTimeFlag<<std::endl;
+	//std::cout<<"Tau:\t"<<t_min<<" "<<fTimeFlag<<std::endl;
 }
 
 void U2U::WriteUrQMD() {
-	fUrQMDFile<<"UQMD   version:       20030   1000  20030  output_file  14"<<std::endl;
+	fUrQMDFile<<"UQMD   version:       30400   1000  30400  output_file  14"<<std::endl;
 		fUrQMDFile<<"projectile:  (mass, char)  102 100   target:  (mass, char)  102  100 "<<std::endl;
 		fUrQMDFile<<"transformation betas (NN,lab,pro)     0.0000000  0.9634189 -0.9634189"<<std::endl;
 		fUrQMDFile<<"impact_parameter_real/min/max(fm):   "<<Form("%4.2f",fUrQMDEvent->GetB())<<"  0.00 13.00  total_cross_section(mbarn):    5309.29"<<std::endl;
@@ -280,14 +280,14 @@ void U2U::WriteUrQMD() {
 				fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
 						Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
 						ityp_s<<i3_s<<ichg_s<<
-						"        0    0         0  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+						"        0    0        91  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
 					//	"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.0000000E+01"<<Form("%8d",i)
 						<<std::endl;
 			}else{
 			fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
 					Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
 					ityp_s<<i3_s<<ichg_s<<
-					"        0    0         0  "<<"0.10000000E+32"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+					"        0    0         91  "<<"0.10000000E+32"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
 					<<std::endl;
 			}
 		}
