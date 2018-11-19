@@ -6,7 +6,7 @@ THERMINATOR 2 decay tables (see https://therminator2.ifj.edu.pl/).
 ## 1. Prerequisites
 ROOT >5.34 + cmake 
 To use all features of this program ou will need also:
-- UrQMD to call cascades (you can download UrQMD from: https://urqmd.org/)
+- UrQMD 3.4 to call cascades (you can download UrQMD from: https://urqmd.org/)
 - Unigen to convert files from various models into readable to U2boot tree (http://svn.cern.ch/guest/unigen/trunk/)
 
 ## 2. How to install
