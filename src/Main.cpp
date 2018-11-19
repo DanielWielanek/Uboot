@@ -33,6 +33,9 @@ Int_t TimeFlag;
 Int_t Nevents;
 Int_t Status;
 Double_t Tau;
+Int_t UrQMDTime_out;
+Int_t UrQMDTime_calc;
+Double_t UrQMDTime_dt;
 void Print(TString text){
 	text = Form("*              %s",text.Data());
 	Int_t add = 89 - text.Length();//20
@@ -104,11 +107,16 @@ void UseUrQMD(TString file_in, TString file_out){
 	}
 	convert->SetFreezoutTime(Tau);
 	convert->Convert();
+	Nevents = convert->GetEvents();// is number of events ok?
 	Int_t total_events = convert->GetEvents();
 	delete convert;
 	// al text files ready time to convert
 	Print("*** staring UrQMD ***");
+
 	UrQMDCall *call = new UrQMDCall(Remove);
+	call->SetCalculationTime(UrQMDTime_calc);
+	call->SetOutputTime(UrQMDTime_out);
+	call->SetDeltaTime(UrQMDTime_dt);
 	call->Convert(Nevents);
 	Print("*** merging files ***");
 	UMerger *merger = new UMerger(file_out,!NoDecay);
@@ -158,6 +166,9 @@ void CheckParams(Int_t argc, char*argv[]){
 	Afterburner = kFALSE;
 	DecayOnly = kFALSE;
 	FeedDown = kFALSE;
+	UrQMDTime_calc = 200;//total UrQMD time calc
+	UrQMDTime_out =200;//final UrQMD time
+	UrQMDTime_dt = -1;//UrQMD timestep
 	Tau = -1;
 	Status = -1E+9;
 	Double_t x;
@@ -181,6 +192,22 @@ void CheckParams(Int_t argc, char*argv[]){
 			if(Tau>=0) TimeFlag = 1;
 			continue;
 		}
+		ParCheck(argv[i],"-urqmd_out=",x);
+		if(x!=y){
+			UrQMDTime_out=x;
+			continue;
+		}
+		ParCheck(argv[i],"-urqmd_calc=",x);
+		if(x!=y){
+			UrQMDTime_calc=x;
+			continue;
+		}
+		ParCheck(argv[i],"-urqmd_dt=",x);
+		if(x!=y){
+			UrQMDTime_dt=x;
+			continue;
+		}
+
 		ParCheck(argv[i],"-t=av",x);
 		if(x!=y){
 			TimeFlag = 2;
@@ -228,6 +255,12 @@ void CheckParams(Int_t argc, char*argv[]){
 		TString model = "URQMD";
 		if(Afterburner){
 			model = "AFTERBURNER";
+		}else{
+			std::cout<<"URQMD time conf"<<std::endl;
+			std::cout<<"\tcalculation time:\t"<<UrQMDTime_calc<<std::endl;
+			std::cout<<"\toutput time:\t"<<UrQMDTime_out<<std::endl;
+			if(UrQMDTime_dt>0)
+				std::cout<<"\tdelta time:\t"<<UrQMDTime_dt<<std::endl;
 		}
 
 		if(NoDecay)
@@ -280,13 +313,19 @@ int main(int argc, char *argv[]) {
 		std::cout<<"\t-no-decay disable decayer after UrQMD"<<std::endl;
 		std::cout<<"\t-s=N where N is staus of processed particles -  particles with different status are ingored completely"<<std::endl;
 		std::cout<<"\t-n=N where N is maximun number of events to process"<<std::endl;
+		std::cout<<"-feeddown try decay highly exotic particles before UrQMD"<<std::endl;
+		std::cout<<"time flags:"<<std::endl;
 		std::cout<<"\t-t=tau_flag, where tau_flag can  have possible values:"<<std::endl;
 		std::cout<<"\t\t-t=min (default) star with first particle"<<std::endl;
 		std::cout<<"\t\t-t=fmcXX start with fixed time XX fm/c"<<std::endl;
 		std::cout<<"\t\t-t=av start with averaged time of freezout"<<std::endl;
 		std::cout<<"\t\t-t=max start with time where most particles are created"<<std::endl;
-		std::cout<<"-feeddown try decay highly exotic particles before UrQMD"<<std::endl;
-		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
+		std::cout<<"urqmd simulation flags"<<std::endl;
+		std::cout<<"\t-urqmd_out=X set urqmd output time tim[1]"<<std::endl;
+		std::cout<<"\t-urqmd_calc=X set urqmd calculattion time tim[0]"<<std::endl;
+		std::cout<<"\t-urqmd_dt=X set urqmd dleta time cdt"<<std::endl;
+
+//		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
 		return 0;
 	}
 	Welcome();

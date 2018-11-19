@@ -10,9 +10,11 @@
 #include <TString.h>
 UrQMDCall::UrQMDCall(Bool_t remove):
 fRemove(remove),
-fCalls(0)
+fCalls(0),
+fCalculationTime(200),
+fOutputTime(200),
+fDeltaTime(-1)
 {
-
 }
 
 void UrQMDCall::GenerateInput() {
@@ -23,7 +25,9 @@ void UrQMDCall::GenerateInput() {
 	input<<"nev "<<1<<" "<<std::endl;
 //	input<<"imp 13. 14.0"<<std::endl;
 //	input<<"ecm 7"<<std::endl;
-	input<<"tim 200 200"<<std::endl;
+	input<<"tim "<<fCalculationTime<<" "<<fOutputTime<<""<<std::endl;
+	if(fDeltaTime>0)
+		input<<"cdt "<<Form("%4.2f",fDeltaTime)<<std::endl;
 //	input<<"eos 0"<<std::endl;
 	input<<"cto 40 2"<<std::endl;
 	input<<"#f13"<<std::endl;
