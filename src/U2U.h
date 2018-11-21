@@ -20,6 +20,7 @@
 #include <TFile.h>
 #include <TH1D.h>
 
+#include "UConfigurationParams.h"
 #include "UItyp.h"
 #include "UPdgConvert.h"
 #include "UEvent.h"
@@ -74,6 +75,11 @@ public:
 	 * @param name of Unigen file, files are converted to u2boot_temp/test_U2boot"
 	 */
 	U2U(TString name="");
+	/**
+	 *
+	 * @param name
+	 */
+	U2U(UConfigurationParams *params);
 	/**
 	 * try to decay unstable particles that cannot be processed by UrQMD
 	 */

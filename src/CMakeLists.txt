@@ -15,6 +15,7 @@ UItyp.cxx
 UFile.cxx
 UDecayChannel.cxx
 UDecayParticle.cxx
+UConfigurationParams.cxx
 )
 
 MAKEHEADERS(HEADERS "${SRC}")

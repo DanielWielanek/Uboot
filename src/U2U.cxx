@@ -27,7 +27,6 @@ void U2U::Convert() {
 	fTrashFile = new UFile("u2boot_temp/trash.root","recreate");
 	fEvent = fInputFile->GetEvent();
 	fEventTrash = fTrashFile->GetEvent();
-
 	fUrQMDEvent = new UEvent();
 	for(int i=0;i<60;i++){
 		fCTO[i] = 0 ;
@@ -384,4 +383,12 @@ Bool_t U2U::TryDecay(UParticle* p, Int_t pos) {
 		return kFALSE;
 	}
 	return kTRUE;
+}
+
+U2U::U2U(UConfigurationParams* params): U2U(params->GetInputFile()) {
+	fTimeFlag = params->GetTimeFlag();
+	fMaxEvents = params->GetNevents();
+	fStatus = params->GetStatus();
+	fUseStatus = params->UseStatus();
+	fTryDecay = params->FeedDown();
 }

@@ -13,7 +13,8 @@
 #include <fstream>
 #include <iostream>
 #include <TROOT.h>
-
+#include "U2U.h"
+#include "UConfigurationParams.h"
 /**
  * class for calling UrQMD
  */
@@ -22,16 +23,20 @@ class UrQMDCall : public TObject{
 	Int_t fCalls;
 	Int_t fCalculationTime;
 	Int_t fOutputTime;
+	Int_t fNEvents;
 	Double_t fDeltaTime;
+	U2U *fUrQMDWriter;
 	void GenerateInput();
 	void GenerateRunQMD(Int_t event);
 	void RunQMD(Int_t event);
+	void Print(TString text)const;
 public:
-	UrQMDCall(Bool_t remove = kTRUE);
+	UrQMDCall(UConfigurationParams *params=NULL);
+	void LoadConfiguration(UConfigurationParams *params);
 	void SetOutputTime(Int_t time){fOutputTime =time;};
 	void SetCalculationTime(Int_t time){fCalculationTime = time;};
 	void SetDeltaTime(Double_t time){fDeltaTime = time;};
-	void Convert(Int_t nevents);
+	void Convert();
 	virtual ~UrQMDCall();
 	ClassDef(UrQMDCall,1)
 };

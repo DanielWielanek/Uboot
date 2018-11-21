@@ -20,5 +20,6 @@
 #pragma link C++ class UFile+;
 #pragma link C++ class UDecayChannel+;
 #pragma link C++ class UDecayParticle+;
+#pragma link C++ class UConfigurationParams+;
 
 #endif

@@ -8,14 +8,6 @@
  */
 #include "UrQMDCall.h"
 #include <TString.h>
-UrQMDCall::UrQMDCall(Bool_t remove):
-fRemove(remove),
-fCalls(0),
-fCalculationTime(200),
-fOutputTime(200),
-fDeltaTime(-1)
-{
-}
 
 void UrQMDCall::GenerateInput() {
 	std::ofstream input;
@@ -85,13 +77,54 @@ UrQMDCall::~UrQMDCall() {
 		gSystem->Exec("rm tables.dat");
 	}
 	std::cout<<"UQMD DONE"<<std::endl;
+	if(fUrQMDWriter)
+		delete fUrQMDWriter;
 }
 
-void UrQMDCall::Convert(Int_t nevents) {
+void UrQMDCall::Convert() {
+	gSystem->Load("libTree");
+	gSystem->Exec("mkdir u2boot_temp");
 	GenerateInput();
-	for(int i=0;i<nevents;i++){
+	Print("*** reading unigen file ***");
+	fUrQMDWriter->Convert();
+	if(fNEvents<0){
+		fNEvents = fUrQMDWriter->GetEvents();
+	}
+	Print("*** staring UrQMD ***");
+	for(int i=0;i<fNEvents;i++){
 		GenerateRunQMD(i);
 		fCalls = 0;
 		RunQMD(i);
 	}
+}
+
+UrQMDCall::UrQMDCall(UConfigurationParams* params):
+		fCalls(0),
+	fCalculationTime(200),
+	fOutputTime(200),
+	fDeltaTime(-1),
+	fNEvents(-1),
+	fRemove(kFALSE),
+	fUrQMDWriter(NULL){
+	LoadConfiguration(params);
+}
+
+void UrQMDCall::Print(TString text) const {
+	text = Form("*              %s",text.Data());
+	Int_t add = 89 - text.Length();//20
+	TString empty="";
+	for(int i=0;i<add;i++){
+		empty+=" ";
+	}
+	std::cout<<text<<empty<<"*"<<std::endl;
+}
+
+void UrQMDCall::LoadConfiguration(UConfigurationParams* params) {
+	if(params==NULL) return;
+	fCalculationTime = params->GetUrQMDTimeCalc();
+	fOutputTime = params->GetUrQMDTimeOut();
+	fDeltaTime = params->GetUrQmdTimeDt();
+	fRemove = params->RemoveTemp();
+	fNEvents = params->GetNevents();
+	fUrQMDWriter = new U2U(params);
 }
