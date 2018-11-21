@@ -67,6 +67,12 @@ public:
 	 */
 	Int_t Decay(UParticle *mother, TClonesArray *daughters, Int_t shift);
 	/**
+	 *
+	 * @param mother
+	 * @return estimated decay time of particle, return 1+E34 if stable
+	 */
+	Double_t GetDecayTime(UParticle *mother)const;
+	/**
 	 * add decay channel
 	 * @param dec
 	 */

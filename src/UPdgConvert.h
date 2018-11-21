@@ -40,6 +40,7 @@ public:
 	Int_t GetCharge(Int_t pdg_code);
 	Int_t Status(Int_t pdg_code);
 	Int_t DecayParticle(UParticle *mother,TClonesArray *array,Int_t shift);
+	Double_t EstimateDecayTime(UParticle *mother);
 	void Pdg2U(Int_t pdg_code, Int_t &ityp, Int_t &ichg, Int_t &i3);
 	virtual ~UPdgConvert();
 	ClassDef(UPdgConvert,1)

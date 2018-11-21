@@ -8,7 +8,6 @@
  */
 #ifndef U2U_H_
 #define U2U_H_
-#define UQMD_VER 3.4
 #include <TObject.h>
 #include <TLorentzVector.h>
 #include <TVector3.h>
@@ -57,6 +56,7 @@ private:
 	Bool_t fUseStatus;
 	Bool_t fTryDecay;
 	Double_t fFreezoutTime;
+	Double_t fCalculationTime;
 	TH1D *fFreezoutHisto;
 	Double_t *fTau;
 	Int_t fTauSize;
@@ -83,6 +83,11 @@ public:
 	 * @param n number of events to conversion
 	 */
 	void SetNEvents(Int_t n){fMaxEvents = n;};
+	/**
+	 * set full calulation time
+	 * @param calc
+	 */
+	void SetCalculationTime(Double_t calc){fCalculationTime = calc;};
 	/**
 	 * set flag that define time of "transition into UrQMD"
 	 * @param flag  0 - time of creation of the first particle

@@ -70,6 +70,23 @@ UDecayParticle& UDecayParticle::operator =(const UDecayParticle& other) {
 	return *this;
 }
 
+Double_t UDecayParticle::GetDecayTime(UParticle* mother) const {
+	UDecayChannel *channel = GetRandomChannel();
+	Int_t daughters = channel->GetDaughterNo();
+	if(daughters==0) return 1E+34;
+	Double_t tTime;
+	TLorentzVector mP = mother->GetMomentum();
+	if(fGamma==0){
+		tTime = 1E+34;
+	}else{
+	    double tTau0 = mP.E() / (mP.M() * fGamma);
+	    // When it decays
+	    tTime = -tTau0 * TMath::Log(gRandom->Rndm());
+	}
+	return tTime;
+
+}
+
 UDecayParticle::~UDecayParticle() {
 	if(fDecays){
 		for(int i=0;i<fDecayChannelN;i++){

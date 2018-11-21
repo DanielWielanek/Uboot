@@ -325,3 +325,13 @@ Int_t UPdgConvert::GetQuarkCharge(Char_t char1) const {
 	}
 	return 0;
 }
+
+Double_t UPdgConvert::EstimateDecayTime(UParticle* mother) {
+	if(fPDG2Decay.find(mother->GetPdg())==fPDG2Decay.end()){
+		return 1E+34;
+	}else{
+		UDecayParticle decay = fPDG2Decay[mother->GetPdg()];
+		return decay.GetDecayTime(mother);
+	}
+}
+

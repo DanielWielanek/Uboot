@@ -13,8 +13,8 @@ U2U::U2U(TString name) :
 fFlags(NULL),fFlagsSize(2000),fPDG(NULL),fTrashFile(NULL),
 fInputFile(NULL),fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
 fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
-fTryDecay(kFALSE),
-fFreezoutTime(0),fFreezoutHisto(NULL),fTau(NULL),fTauSize(0),
+fTryDecay(kFALSE),fFreezoutTime(0),fCalculationTime(200),
+fFreezoutHisto(NULL),fTau(NULL),fTauSize(0),
 fBadPdg(82)
 {
 	fTempDaughters = new TClonesArray("UParticle");
@@ -212,9 +212,7 @@ void U2U::WriteUrQMD() {
 	//	fUrQMDFIle<<"op  0    0    0    0    0    0    1    0    1    0    0    0    0    2    1  "<<std::endl;
 	//	fUrQMDFIle<<"op  0    0    0    1    1    0    0    0    0    0    1 *  0    0    1    0  "<<std::endl;
 
-		Int_t rows = 3;
-		if(UQMD_VER>=3.4)
-			rows = 4;
+		Int_t rows = 4;
 
 		for(int j=0;j<rows;j++){
 			int lopt= j*15;
@@ -246,10 +244,9 @@ void U2U::WriteUrQMD() {
 		fUrQMDFile<<"pa 0.2700E+00   0.4900E+00   0.2700E+00   0.1000E+01   0.1600E+01   0.8500E+00   0.1550E+01   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00   0.0000E+00  "<<std::endl;
 		fUrQMDFile<<"pa 0.9000E+00   0.5000E+02   0.1000E+01   0.1000E+01   0.1000E+01   0.1500E+01   0.1600E+01   0.0000E+00   0.2500E+01   0.1000E+00   0.3000E+01   0.2750E+00  "<<std::endl;
 		fUrQMDFile<<"pa 0.4200E+00   0.1080E+01   0.8000E+00   0.5000E+00   0.0000E+00   0.5500E+00   0.5000E+01   0.8000E+00   0.5000E+00   0.8000E+06   0.1000E+01   0.2000E+01  "<<std::endl;
-		if(UQMD_VER>=3.4){
-			fUrQMDFile<<"pa 0.9000E+00   0.5000E+02   0.1000E+01   0.1000E+01   0.1000E+01   0.1500E+01   0.1600E+01   0.0000E+00   0.2500E+01   0.1000E+00   0.3000E+01   0.2750E+00  "<<std::endl;
-			fUrQMDFile<<"pa 0.4200E+00   0.1080E+01   0.8000E+00   0.5000E+00   0.0000E+00   0.5500E+00   0.5000E+01   0.8000E+00   0.5000E+00   0.8000E+06   0.1000E+01   0.2000E+01  "<<std::endl;
-		}
+
+		fUrQMDFile<<"pa 0.9000E+00   0.5000E+02   0.1000E+01   0.1000E+01   0.1000E+01   0.1500E+01   0.1600E+01   0.0000E+00   0.2500E+01   0.1000E+00   0.3000E+01   0.2750E+00  "<<std::endl;
+		fUrQMDFile<<"pa 0.4200E+00   0.1080E+01   0.8000E+00   0.5000E+00   0.0000E+00   0.5500E+00   0.5000E+01   0.8000E+00   0.5000E+00   0.8000E+06   0.1000E+01   0.2000E+01  "<<std::endl;
 		fUrQMDFile<<"pvec: r0              rx              ry              rz              p0              px              py              pz              m          ityp 2i3 chg lcl#  ncl or "<<std::endl;
 		fUrQMDFile<<"        "<<fUrQMDEvent->GetNpa()<<"         200"<<std::endl;
 		fUrQMDFile<<"     0      0       0       0       0      0       0       0"<<std::endl;
@@ -276,20 +273,17 @@ void U2U::WriteUrQMD() {
 			//std::cout<<"---\t"<<pdg<< "|"<<ityp_s<<"|"<<ichg_s<<"|"<<i3_s<<std::endl;
 			//fDebugFile<<part->GetPdg()<<" "<<part->T()<<" "<<part->X()<<" "<<part->Y()<<" "<<part->Z()<<" "<<part->E()<<" "<<
 		//			part->Px()<< " "<<part->Py()<< " "<<part->Pz()<<std::endl;
-			if(UQMD_VER>=3.4){
-				fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
-						Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
-						ityp_s<<i3_s<<ichg_s<<
-						"        0    0        91  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
-					//	"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.0000000E+01"<<Form("%8d",i)
-						<<std::endl;
-			}else{
+
+			Double_t decay_time = fPDG->EstimateDecayTime(part);
+			decay_time+=fTau[i];
+			if(decay_time>fCalculationTime)
+				decay_time = 1E+34;
 			fUrQMDFile<<Format(part->T())<<Format(part->X())<<Format(part->Y())<<Format(part->Z())<<Format(part->E())<<
 					Format(part->Px())<<Format(part->Py())<<Format(part->Pz())<<Format(mom.M())<<spaces<<
 					ityp_s<<i3_s<<ichg_s<<
-					"        0    0         91  "<<"0.10000000E+32"<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+					"        0    0        91"<<Format(decay_time)<<Format(fTau[i])<<"  0.10000000E+01"<<Form("%8d",i)
+				//	"        0    0        99  "<<"0.10000000E+35"<<Format(fTau[i])<<"  0.0000000E+01"<<Form("%8d",i)
 					<<std::endl;
-			}
 		}
 }
 
