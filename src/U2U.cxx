@@ -335,7 +335,6 @@ Double_t U2U::EstimateTime() {
 		return 0;
 		break;
 	}
-
 }
 
 Int_t U2U::DecayForUrQMD() {
@@ -348,16 +347,26 @@ Int_t U2U::DecayForUrQMD() {
 			if(particle->GetStatus()!=fStatus){
 				continue;
 			}
-			Int_t pdg = particle->GetPdg();
-			fPDG->Pdg2U(pdg,ityp,ichg,i3);
-			if(ityp==0){//unknown for UrQMD try decay
-				fTempDaughters->Clear();
-				TryDecay(particle,0);
+		}
+		Int_t pdg = particle->GetPdg();
+		fPDG->Pdg2U(pdg,ityp,ichg,i3);
+		if(ityp==0){//unknown for UrQMD try decay
+			Int_t start_index = fTempDaughters->GetEntriesFast();
+			Bool_t decayed = TryDecay(particle,0);
+			if(decayed){
+				for(int j=start_index;j<fTempDaughters->GetEntriesFast();j++){
+					UParticle *dau = (UParticle*)fTempDaughters->UncheckedAt(j);
+					//set freezout as parent position
+					dau->SetX(particle->X());
+					dau->SetY(particle->Y());
+					dau->SetZ(particle->Z());
+					dau->SetT(particle->T());
+				}
 			}
 		}
 	}
-	for(int i=0;i<fTempDaughters->GetEntriesFast();i++){
-		fEvent->AddParticle(*(UParticle*)fTempDaughters->UncheckedAt(i));
+	for(int j=0;j<fTempDaughters->GetEntriesFast();j++){
+		fEvent->AddParticle(*(UParticle*)fTempDaughters->UncheckedAt(j));
 	}
 	return fTempDaughters->GetEntriesFast();
 }
@@ -371,12 +380,17 @@ Bool_t U2U::TryDecay(UParticle* p, Int_t pos) {
 		 * success -> we have decay!
 		 * mark particle as "bad" by setting dummy PDG
 		 */
+		//TString lab = "";
+		//for(int i=0;i<pos;i++)
+		//	lab = lab+"\t";
+		//std::cout<<lab<<" DECAY "<<p->GetPdg()<<std::endl;
 		p->SetPdg(fBadPdg);
 		for(int i=0;i<daughters;i++){
 			UParticle *daughter = (UParticle*)fTempDaughters->At(shift+i);
 			fPDG->Pdg2U(daughter->GetPdg(),ityp,ichg,i3);
+			//std::cout<<lab<<"\t"<<daughter->GetPdg()<<std::endl;
 			if(ityp==0){// bad daugher try decay
-				TryDecay(daughter, 0);
+				TryDecay(daughter, ++pos);
 			}
 		}
 	}else{//no daughter
