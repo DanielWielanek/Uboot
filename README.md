@@ -48,8 +48,8 @@ There are few ways to define this time<br />
 -t=max - start with time creation of last particle<br />
 UrQMD time calcualtion times:<br/>
 -urqmd_out=XX - where XX is output time (in UrQMD input: tim[1]=outtime)<br />
--urqmd_calc==XX - where XX is calculation time (in UrQMD input: tim[0]=tottime)<br />
--urqmd_dt==XX - where XX is step time (in UrQMD input: cdt)<br />
+-urqmd_calc=XX - where XX is calculation time (in UrQMD input: tim[0]=tottime)<br />
+-urqmd_dt=XX - where XX is step time (in UrQMD input: cdt)<br />
 Output tree there has 4 types of particle status:<br />
 0 - for "bad" particles (with PDG that is not supported in UrQMD)<br />
 1 - for particles that passed UrQMD cascades and didn't interact<br />
