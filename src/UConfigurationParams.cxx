@@ -54,6 +54,23 @@ fOutputFile("")
 	fOutputFile = argv[2];
 	for(int i=3;i<argc;i++){
 		x = -1E+9;
+		TString par = argv[i];
+		if(par.EqualTo("-feeddown")){
+			fFeedDown = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-decay")){
+			fDecayOnly = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-no-decay")){
+			fNoDecay = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-afterburner")){
+			fAfterburner = kTRUE;
+			continue;
+		}
 		ParCheck(argv[i],"-f",x);
 		if(x==1){
 			fRemoveTemp = kTRUE;
@@ -85,7 +102,6 @@ fOutputFile("")
 			fUrQMDTime_dt=x;
 			continue;
 		}
-
 		ParCheck(argv[i],"-t=av",x);
 		if(x!=y){
 			fTimeFlag = 2;
@@ -100,23 +116,6 @@ fOutputFile("")
 		if(x!=y){
 			fStatus = x;
 			fUseStatus = kTRUE;
-			continue;
-		}
-		TString par = argv[i];
-		if(par.EqualTo("-decay")){
-			fDecayOnly = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-no-decay")){
-			fNoDecay = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-afterburner")){
-			fAfterburner = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-feeddiwb")){
-			fFeedDown = kTRUE;
 			continue;
 		}
 	}
@@ -152,6 +151,11 @@ void UConfigurationParams::PrintConfiguration() const {
 			std::cout<<"\toutput time:\t"<<fUrQMDTime_out<<std::endl;
 			if(fUrQMDTime_dt>0)
 				std::cout<<"\tdelta time:\t"<<fUrQMDTime_dt<<std::endl;
+			if(fFeedDown){
+				std::cout<<"Feeddown:ENABLED"<<std::endl;
+			}else{
+				std::cout<<"Feeddown:DISABLED"<<std::endl;
+			}
 		}
 
 		if(fNoDecay)
