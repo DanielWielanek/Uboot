@@ -39,7 +39,7 @@ after so yo can remove them)<br />
 -n=N to specify number of events to process (by default process all events)<br />
 -decay - only decay particles, don't call UrQMD<br />
 -no-decay - only call UrQMD, don't decay particles<br />
--t=tau_flat. <br/>
+-feeddown - try to decay particles that are not suppored by UrQMD to suppored decay products (note: all decay products are created in postion of creation of parent particle)
 UrQMD start at given time. Without patch from uboot all particles positions are interpolated to given time. Then UrQMD starts. If you apply patch particles should not interact until "formation time". <br />
 There are few ways to define this time<br />
 -t=min - start cascades when first particle is created (recommended, default)<br />
