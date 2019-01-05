@@ -28,35 +28,52 @@ void UDecayChannel::AddDaughter(Int_t pdg) {
 }
 
 UDecayChannel UDecayChannel::operator =(const UDecayChannel& other) {
-	if(fPdgCodes) delete []fPdgCodes;
-	fDaughters = other.fDaughters;
-	fBranchRatio = other.fBranchRatio;
-	if(fDaughters){
-		fPdgCodes = new Int_t[fDaughters];
-		fMass = new Double_t[fDaughters];
-		for(int i=0;i<fDaughters;i++){
-			fPdgCodes[i] = other.fPdgCodes[i];
-			fMass[i] = other.fMass[i];
+	if(&other!=this){
+		if(fPdgCodes) delete []fPdgCodes;
+		if(fMass) delete []fMass;
+		fDaughters = other.fDaughters;
+		fBranchRatio = other.fBranchRatio;
+		if(fDaughters){
+			fPdgCodes = new Int_t[fDaughters];
+			fMass = new Double_t[fDaughters];
+			for(int i=0;i<fDaughters;i++){
+				fPdgCodes[i] = other.fPdgCodes[i];
+				fMass[i] = other.fMass[i];
+			}
+		}else{
+			fMass = NULL;
+			fPdgCodes = NULL;
 		}
 	}
 	return *this;
+}
+
+UDecayChannel::UDecayChannel(const UDecayChannel& other) {
+	fDaughters = other.fDaughters;
+	fBranchRatio = other.fBranchRatio;
+	if(fDaughters==0){
+		fMass = NULL;
+		fPdgCodes = NULL;
+		return;
+	}
+	fPdgCodes = new Int_t[fDaughters];
+	fMass = new Double_t[fDaughters];
+	for(int i=0;i<fDaughters;i++){
+		fMass[i] = other.fMass[i];
+		fPdgCodes[i] = other.fPdgCodes[i];
+	}
 }
 
 UDecayChannel::~UDecayChannel() {
 	if(fPdgCodes){
 		delete []fPdgCodes;
 	}
+	if(fMass)
+		delete []fMass;
 }
 
 UDecayChannel* UDecayChannel::MakeCopy() const{
 	UDecayChannel *copy = new UDecayChannel();
-	copy->fDaughters = this->fDaughters;
-	copy->fBranchRatio = this->fBranchRatio;
-	copy->fPdgCodes = new Int_t[fDaughters];
-	copy->fMass = new Double_t[fDaughters];
-	for(int i=0;i<fDaughters;i++){
-		copy->fMass[i] = fMass[i];
-		copy->fPdgCodes[i] = fPdgCodes[i];
-	}
+	*copy = *this;
 	return copy;
 }

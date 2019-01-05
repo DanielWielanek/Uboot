@@ -21,6 +21,7 @@ class UDecayChannel: public TObject {
     Double_t fBranchRatio;
 public:
 	UDecayChannel();
+	UDecayChannel(const UDecayChannel &other);
 	UDecayChannel operator=(const UDecayChannel &other);
 	UDecayChannel * MakeCopy()const;
 	/**

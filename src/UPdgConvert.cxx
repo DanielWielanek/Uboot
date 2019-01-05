@@ -61,9 +61,10 @@ UPdgConvert::UPdgConvert() {
 
 	}
 
-	  for (std::map<Int_t,UDecayParticle>::iterator it=fPDG2Decay.begin(); it!=fPDG2Decay.end(); ++it)
+	  for (std::map<Int_t,UDecayParticle>::iterator it=fPDG2Decay.begin(); it!=fPDG2Decay.end(); ++it){
 	     it->second.ScaleDecays();
-
+	//   	 it->second.Print();
+	  }
 	decays->close();
 	delete decays;
 	fgInstance = this;
@@ -267,7 +268,10 @@ void UPdgConvert::AddDummyParticles() {
 }
 
 UPdgConvert::~UPdgConvert() {
-	// TODO Auto-generated destructor stub
+	if(fgInstance){
+		fPDG = NULL;
+		fgInstance = NULL;
+	}
 }
 
 Int_t UPdgConvert::Status(Int_t pdg_code) {

@@ -102,6 +102,10 @@ public:
 	 * @param pdg mother PDG
 	 */
 	void SetPdg(Int_t pdg) {fMotherPDG = pdg;}
+	/**
+	 * print decay chanell info
+	 */
+	void Print()const;
 	virtual ~UDecayParticle();
 	ClassDef(UDecayParticle,1)
 };
