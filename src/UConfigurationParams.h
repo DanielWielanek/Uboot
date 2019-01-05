@@ -12,6 +12,14 @@
 #include "TString.h"
 
 class UConfigurationParams : public TObject{
+public:
+	enum eTimeFlag{
+		kAverage,
+		kMinimum,
+		kFixedTime,
+		kMaximum
+	};
+private:
 	Bool_t fRemoveTemp;
 	Bool_t fNoDecay;
 	Bool_t fAfterburner;
@@ -19,7 +27,7 @@ class UConfigurationParams : public TObject{
 	Bool_t fFeedDown;
 	Bool_t fUseUrQMD;
 	Bool_t fUseStatus;
-	Int_t fTimeFlag;
+	eTimeFlag fTimeFlag;
 	Int_t fNevents;
 	Int_t fStatus;
 	Double_t fTau;
@@ -42,10 +50,10 @@ public:
 	Bool_t UseUrQMD()const{return fUseUrQMD;}
 	Bool_t UseStatus()const{return fUseStatus;};
 	Int_t GetStatus() const {return fStatus;}
-	Int_t GetTimeFlag() const {return fTimeFlag;}
 	Int_t GetUrQMDTimeCalc() const {return fUrQMDTime_calc;}
 	Int_t GetUrQMDTimeOut()const{return fUrQMDTime_out;}
 	Int_t GetNevents() const {return fNevents;}
+	eTimeFlag GetTimeFlag() const {return fTimeFlag;}
 	Double_t GetUrQmdTimeDt() const {return fUrQMDTime_dt;}
 	Double_t GetTau() const {return fTau;}
 	TString GetInputFile() const {return fInputFile;}

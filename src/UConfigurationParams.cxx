@@ -15,7 +15,7 @@ fRemoveTemp(kFALSE),fNoDecay(kFALSE),
 fAfterburner(kFALSE),fDecayOnly(kFALSE),
 fFeedDown(kFALSE),fUseUrQMD(kTRUE),
 fUseStatus(kFALSE),
-fTimeFlag(0),
+fTimeFlag(kMinimum),
 fNevents(-1),fStatus(-1E+9),
 fTau(-1),
 fUrQMDTime_calc(200),
@@ -37,14 +37,13 @@ fOutputFile("")
 		std::cout<<"time flags:"<<std::endl;
 		std::cout<<"\t-t=tau_flag, where tau_flag can  have possible values:"<<std::endl;
 		std::cout<<"\t\t-t=min (default) star with first particle"<<std::endl;
-		std::cout<<"\t\t-t=fmcXX start with fixed time XX fm/c"<<std::endl;
+		std::cout<<"\t\t-t=XX start with fixed time XX fm/c"<<std::endl;
 		std::cout<<"\t\t-t=av start with averaged time of freezout"<<std::endl;
 		std::cout<<"\t\t-t=max start with time where most particles are created"<<std::endl;
 		std::cout<<"urqmd simulation flags"<<std::endl;
 		std::cout<<"\t-urqmd_out=X set urqmd output time tim[1]"<<std::endl;
 		std::cout<<"\t-urqmd_calc=X set urqmd calculattion time tim[0]"<<std::endl;
 		std::cout<<"\t-urqmd_dt=X set urqmd dleta time cdt"<<std::endl;
-
 //		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
 		return;
 	}
@@ -81,11 +80,23 @@ fOutputFile("")
 			fNevents = x;
 			continue;
 		}
-		ParCheck(argv[i],"-t=fmc",x);
-		if(x!=y){
-			fTau = x;
-			if(fTau>=0) fTimeFlag = 1;
-			continue;
+		if(par.BeginsWith("-t=")){
+			ParCheck(argv[i],"-t=av",x);
+			if(x!=y){
+				fTimeFlag = kAverage;
+				continue;
+			}
+			ParCheck(argv[i],"-t=max",x);
+			if(x!=y){
+				fTimeFlag = kMaximum;
+				continue;
+			}
+			ParCheck(argv[i],"-t=",x);
+			if(x!=y){
+				fTau = x;
+				if(fTau>=0) fTimeFlag = kFixedTime;
+				continue;
+			}
 		}
 		ParCheck(argv[i],"-urqmd_out=",x);
 		if(x!=y){
@@ -100,16 +111,6 @@ fOutputFile("")
 		ParCheck(argv[i],"-urqmd_dt=",x);
 		if(x!=y){
 			fUrQMDTime_dt=x;
-			continue;
-		}
-		ParCheck(argv[i],"-t=av",x);
-		if(x!=y){
-			fTimeFlag = 2;
-			continue;
-		}
-		ParCheck(argv[i],"-t=max",x);
-		if(x!=y){
-			fTimeFlag = 3;
 			continue;
 		}
 		ParCheck(argv[i],"-s=",x);
@@ -166,17 +167,17 @@ void UConfigurationParams::PrintConfiguration() const {
 			std::cout<<"Processing all particles"<<std::endl;
 		else
 			std::cout<<"Processing particles with status "<<(int)fStatus<<" only"<<std::endl;
-		switch((int)fTimeFlag){
-		case 0:
+		switch(fTimeFlag){
+		case kMinimum:
 			std::cout<<"tau mode : minimum "<<std::endl;
+		break;
+		case kFixedTime:
+			std::cout<<Form("tau mode fixed : %4.2f fm/c ",fTau)<<std::endl;
 			break;
-		case 1:
-			std::cout<<Form("tau mode : %4.2f fm/c ",fTau)<<std::endl;
-			break;
-		case 2:
+		case kAverage:
 			std::cout<<"tau mode : average "<<std::endl;
 			break;
-		case 3:
+		case kMaximum:
 			std::cout<<"tau mode : maximum "<<std::endl;
 			break;
 		}

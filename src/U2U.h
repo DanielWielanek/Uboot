@@ -51,14 +51,13 @@ private:
 	UEvent *fEventTrash;
 	TString fFilename;
 	TClonesArray *fTempDaughters;
-	Int_t fTimeFlag;
+	UConfigurationParams::eTimeFlag fTimeFlag;
 	Int_t fMaxEvents;
 	Int_t fStatus;
 	Bool_t fUseStatus;
 	Bool_t fTryDecay;
 	Double_t fFreezoutTime;
 	Double_t fCalculationTime;
-	TH1D *fFreezoutHisto;
 	Double_t *fTau;
 	Int_t fTauSize;
 	const Int_t fBadPdg;
@@ -96,12 +95,9 @@ public:
 	void SetCalculationTime(Double_t calc){fCalculationTime = calc;};
 	/**
 	 * set flag that define time of "transition into UrQMD"
-	 * @param flag  0 - time of creation of the first particle
-	 * 1 - use freezout time form @SetFreezoutTime
-	 * 2 - use avarage value
-	 * 3 - use last particle's freezout time
+	 * @param flag  define first particle's born time
 	 */
-	void SetTimeFlag(Int_t flag){fTimeFlag = flag;};
+	void SetTimeFlag(UConfigurationParams::eTimeFlag flag){fTimeFlag = flag;};
 	/**
 	 * if true then status of particles is used, in such case all particles with different status than given here
 	 * are not passed to UrQMD

@@ -12,9 +12,9 @@
 U2U::U2U(TString name) :
 fFlags(NULL),fFlagsSize(2000),fPDG(NULL),fTrashFile(NULL),
 fInputFile(NULL),fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
-fTimeFlag(0),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
+fTimeFlag(UConfigurationParams::kMinimum),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
 fTryDecay(kFALSE),fFreezoutTime(0),fCalculationTime(200),
-fFreezoutHisto(NULL),fTau(NULL),fTauSize(0),
+fTau(NULL),fTauSize(0),
 fBadPdg(82)
 {
 	fTempDaughters = new TClonesArray("UParticle");
@@ -34,10 +34,6 @@ void U2U::Convert() {
 	SetCTOs();
 	if(fMaxEvents<=0||fMaxEvents>fInputFile->GetEntries()){
 		fMaxEvents = fInputFile->GetEntries();
-	}
-	if(fTimeFlag==3){
-		fFreezoutHisto = new TH1D("temp","temp",1000,0,1000);
-		fFreezoutHisto->SetDirectory(0);
 	}
 	for(int i=0;i<fMaxEvents;i++){
 		fInputFile->GetEntry(i);
@@ -287,8 +283,6 @@ void U2U::WriteUrQMD() {
 }
 
 U2U::~U2U() {
-	if(fFreezoutHisto)
-		delete fFreezoutHisto;
 	delete []fFlags;
 	if(fTauSize>0)
 		delete []fTau;
@@ -303,7 +297,7 @@ TString U2U::Format(Double_t val) {
 Double_t U2U::EstimateTime() {
 	Double_t time = 0;
 	switch(fTimeFlag){
-	case 0:{//default method  - first freezout time
+	case UConfigurationParams::kMinimum:{//default method  - first freezout time
 		time= 1E+9;
 		for(int i=0;i<fEvent->GetNpa();i++){
 				UParticle *particle = fEvent->GetParticle(i);
@@ -312,10 +306,10 @@ Double_t U2U::EstimateTime() {
 		}
 		return time;
 	}break;
-	case 1:{//fixed time
+	case UConfigurationParams::kFixedTime:{//fixed time
 		return fFreezoutTime;
 	}break;
-	case 2:{//average value
+	case UConfigurationParams::kAverage:{//average value
 		Double_t particles = fEvent->GetNpa();
 		for(int i=0;i<fEvent->GetNpa();i++){
 				UParticle *particle = fEvent->GetParticle(i);
@@ -323,13 +317,14 @@ Double_t U2U::EstimateTime() {
 		}
 		return time/particles;
 	}break;
-	case 3:{//maximum value
-		fFreezoutHisto->Reset();
+	case UConfigurationParams::kMaximum:{//maximum value
+		time = 0;
 		for(int i=0;i<fEvent->GetNpa();i++){
 				UParticle *particle = fEvent->GetParticle(i);
-				fFreezoutHisto->Fill(particle->T());
+				if(fFlags[i]==kMeson||fFlags[i]==kBaryon) //ignore unknown particles
+				time = TMath::Max(time,particle->T());
 		}
-		return fFreezoutHisto->GetBinCenter(fFreezoutHisto->GetMaximumBin());
+		return time;
 	}break;
 	default:
 		return 0;
@@ -380,10 +375,6 @@ Bool_t U2U::TryDecay(UParticle* p, Int_t pos) {
 		 * success -> we have decay!
 		 * mark particle as "bad" by setting dummy PDG
 		 */
-		//TString lab = "";
-		//for(int i=0;i<pos;i++)
-		//	lab = lab+"\t";
-		//std::cout<<lab<<" DECAY "<<p->GetPdg()<<std::endl;
 		p->SetPdg(fBadPdg);
 		for(int i=0;i<daughters;i++){
 			UParticle *daughter = (UParticle*)fTempDaughters->At(shift+i);
