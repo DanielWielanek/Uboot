@@ -9,7 +9,10 @@
 #include "UConfigurationParams.h"
 
 #include "TString.h"
+#include <fstream>
 #include <iostream>
+#include <stdlib.h>
+
 UConfigurationParams::UConfigurationParams(int argc, char *argv[]):
 fRemoveTemp(kFALSE),fNoDecay(kFALSE),
 fAfterburner(kFALSE),fDecayOnly(kFALSE),
@@ -45,86 +48,17 @@ fOutputFile("")
 		std::cout<<"\t-urqmd_calc=X set urqmd calculattion time tim[0]"<<std::endl;
 		std::cout<<"\t-urqmd_dt=X set urqmd dleta time cdt"<<std::endl;
 		std::cout<<"\t-sup - supress UrQMD output"<<std::endl;
+		std::cout<<"\t-input=XX path to input file XX"<<std::endl;
 //		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
 		return;
 	}
-	Double_t x;
-	Double_t y = -1E+9;
 	fInputFile = argv[1];
 	fOutputFile = argv[2];
+	TString *par_array = new TString[argc-3];
 	for(int i=3;i<argc;i++){
-		x = -1E+9;
-		TString par = argv[i];
-		if(par.EqualTo("-feeddown")){
-			fFeedDown = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-decay")){
-			fDecayOnly = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-no-decay")){
-			fNoDecay = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-afterburner")){
-			fAfterburner = kTRUE;
-			continue;
-		}
-		ParCheck(argv[i],"-f",x);
-		if(x==1){
-			fRemoveTemp = kTRUE;
-			continue;
-		}
-		ParCheck(argv[i],"-n=",x);
-		if(x>0){
-			fNevents = x;
-			continue;
-		}
-		if(par.BeginsWith("-t=")){
-			ParCheck(argv[i],"-t=av",x);
-			if(x!=y){
-				fTimeFlag = kAverage;
-				continue;
-			}
-			ParCheck(argv[i],"-t=max",x);
-			if(x!=y){
-				fTimeFlag = kMaximum;
-				continue;
-			}
-			ParCheck(argv[i],"-t=",x);
-			if(x!=y){
-				fTau = x;
-				if(fTau>=0) fTimeFlag = kFixedTime;
-				continue;
-			}
-		}
-		ParCheck(argv[i],"-urqmd_out=",x);
-		if(x!=y){
-			fUrQMDTime_out=x;
-			continue;
-		}
-		ParCheck(argv[i],"-urqmd_calc=",x);
-		if(x!=y){
-			fUrQMDTime_calc=x;
-			continue;
-		}
-		ParCheck(argv[i],"-urqmd_dt=",x);
-		if(x!=y){
-			fUrQMDTime_dt=x;
-			continue;
-		}
-		ParCheck(argv[i],"-s=",x);
-		if(x!=y){
-			fStatus = x;
-			fUseStatus = kTRUE;
-			continue;
-		}
-		if(par.EqualTo("-sup")){
-			fSuppressUrQMD = kTRUE;
-			continue;
-		}
+		par_array[i-3] = argv[i];
 	}
+	ReadParams(par_array,argc-3 );
 }
 
 void UConfigurationParams::ParCheck(TString par, TString flag,double &val)const {
@@ -138,6 +72,126 @@ void UConfigurationParams::ParCheck(TString par, TString flag,double &val)const 
 	}
 }
 
+void UConfigurationParams::ReadConfigFile(TString file) {
+	std::ifstream input_file;
+	input_file.open(file);
+	if(input_file.good()){
+		std::string line;
+		Int_t nLines=0;
+		while(std::getline(input_file,line)){
+			nLines++;
+		}
+		if(nLines==0){
+			std::cout<<"Something is wrong with input file "<<std::endl;
+			exit(0);
+		}else{
+			TString *params = new TString[nLines-1];
+			int i =0;
+			input_file.clear();
+			input_file.seekg(0);
+			TString temp;
+			input_file>>temp;
+			if(temp!="#UBOOT_INPUT"){
+				std::cout<<"Something is wrong with input file "<<std::endl;
+				exit(0);
+			}
+			for(int i=0;i<nLines-1;i++){
+				input_file>>params[i];
+				if(!params[i].BeginsWith("-")){
+					params[i]="-"+params[i];
+				}
+			}
+			ReadParams(params, nLines-1);
+			delete []params;
+		}
+	}else{
+		std::cout<<"Something is wrong with input file "<<std::endl;
+		exit(0);
+	}
+	input_file.close();
+}
+void UConfigurationParams::ReadParams(TString *params, Int_t size) {
+	Double_t x=0;
+	Double_t y = -1E+9;
+	for(int i=0;i<size;i++){
+		x = -1E+9;
+		TString par = params[i];
+		if(par.EqualTo("-feeddown")){
+			fFeedDown = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-decay")){
+			fDecayOnly = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-no-decay")){
+			fNoDecay = kTRUE;
+			continue;
+		}
+		/*if(par.EqualTo("-afterburner")){
+			fAfterburner = kTRUE;
+			continue;
+		}*/
+		ParCheck(par,"-f",x);
+		if(x==1){
+			fRemoveTemp = kTRUE;
+			continue;
+		}
+		ParCheck(par,"-n=",x);
+		if(x>0){
+			fNevents = x;
+			continue;
+		}
+		if(par.BeginsWith("-t=")){
+			ParCheck(par,"-t=av",x);
+			if(x!=y){
+				fTimeFlag = kAverage;
+				continue;
+			}
+			ParCheck(par,"-t=max",x);
+			if(x!=y){
+				fTimeFlag = kMaximum;
+				continue;
+			}
+			ParCheck(par,"-t=",x);
+			if(x!=y){
+				fTau = x;
+				if(fTau>=0) fTimeFlag = kFixedTime;
+				continue;
+			}
+		}
+		ParCheck(par,"-urqmd_out=",x);
+		if(x!=y){
+			fUrQMDTime_out=x;
+			continue;
+		}
+		ParCheck(par,"-urqmd_calc=",x);
+		if(x!=y){
+			fUrQMDTime_calc=x;
+			continue;
+		}
+		ParCheck(par,"-urqmd_dt=",x);
+		if(x!=y){
+			fUrQMDTime_dt=x;
+			continue;
+		}
+		ParCheck(par,"-s=",x);
+		if(x!=y){
+			fStatus = x;
+			fUseStatus = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-sup")){
+			fSuppressUrQMD = kTRUE;
+			continue;
+		}
+		if(par.BeginsWith("-input=")){
+			TString name = par(7,par.Length());
+			ReadConfigFile(name);
+			return;//skip this args load from input
+		}
+	}
+}
 void UConfigurationParams::PrintConfiguration() const {
 	std::cout<<"***Configuration:***"<<std::endl;
 	if(fRemoveTemp==kTRUE)

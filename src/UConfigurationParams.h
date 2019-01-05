@@ -38,6 +38,8 @@ private:
 	TString fInputFile;
 	TString fOutputFile;
 	void ParCheck(TString par, TString flag,double &val)const;
+	void ReadConfigFile(TString file);
+	void ReadParams(TString *array, Int_t size);
 public:
 	UConfigurationParams(int argc=0, char *argv[]=NULL);
 	void SetRemoveTemp(Bool_t removeTemp) {fRemoveTemp = removeTemp;}
