@@ -12,7 +12,7 @@ To use all features of this program ou will need also:
 ## 2. How to install
 download code from git then
 ```bash
-cd dowloaded_code
+cd [dowloaded_code]
 mkdir build
 cd build 
 cmake -DCMAKE_INSTALL_PREFIX=[installation path] -D URMQD_PATH:STRING=[path to urqmd model] ..
