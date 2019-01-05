@@ -21,7 +21,6 @@
 #include "UEvent.h"
 #include "UParticle.h"
 #include "U2U.h"
-#include "U2A.h"
 #include "UConfigurationParams.h"
 #include "UMerger.h"
 UPdgConvert	*fPDG;
@@ -66,7 +65,7 @@ void DecayEvent(UEvent *inEvent, UEvent *outEvent, TClonesArray *temp){
 	Int_t max_index = outEvent->GetNpa();
 	for(int i=0;i<max_index;i++){
 		UParticle *prim = outEvent->GetParticle(i);
-		Int_t daughters = fPDG->DecayParticle(prim,temp,max_index);
+		fPDG->DecayParticle(prim,temp,max_index);
 	}
 	for(int i=0;i<temp->GetEntriesFast();i++){
 		UParticle *part = (UParticle *)temp->UncheckedAt(i);
@@ -82,37 +81,6 @@ void UseUrQMD(TString file_in, TString file_out){
 	Print("*** cleaning up ***");
 	delete merger;
 	delete call;//dlete txt files if necessary;
-}
-void UseAfterBurner(TString file_in, TString file_out){
-	gSystem->Load("libTree");
-	gSystem->Exec("mkdir u2boot_temp");
-	Print("*** reading unigen file ***");
-	U2A *convert = new U2A(file_in);
-	Int_t total_events = convert->GetTotalEvents();
-	if(parameters->GetNevents()>0)
-		parameters->SetNevents(total_events);
-	gSystem->Exec("mkdir u2boot_temp");
-	TString path = gSystem->Getenv("URQMD_AFTERBURNER");
-	TString pwd = gSystem->Getenv("PWD");
-	std::cout<<"Processing afterburner events"<<std::endl;
-	gSystem->Exec(Form("cd %s",path.Data()));
-	for(int i=0;i<total_events;i++){
-		convert->Convert(i);
-		TString inp = Form("%s/u2boot_temp/test_U2boot_%i",pwd.Data(),i);
-		TString out = Form("%s/u2boot_temp/test_U2after_%i",pwd.Data(),i);
-		TString osc = Form("%s/u2boot_temp/test_U2oscar_%i",pwd.Data(),i);
-		gSystem->Exec(Form("%s/./afterburner %s %s %s",path.Data(),inp.Data(),osc.Data(),out.Data()));
-	}
-	gSystem->Exec(Form("cd %s",pwd.Data()));
-	delete convert;
-	if(parameters->RemoveTemp()){
-		gSystem->Exec("rm -rf u2boot_temp");
-	}
-
-	Print("*** merging files ***");
-	UMerger *merger = new UMerger(file_out,parameters->Decay(),UMerger::kAfterburner);
-	Print("*** cleaning up ***");
-	delete merger;
 }
 
 void DecayOn(TString file_in, TString file_out){
@@ -151,7 +119,6 @@ int main(int argc, char *argv[]) {
 		}else{// call other afterburner
 			gSystem->Load("libTree");
 			gSystem->Exec("mkdir u2boot_temp");
-			UseAfterBurner(file_in, file_out);
 		}
 	}
 	delete parameters;

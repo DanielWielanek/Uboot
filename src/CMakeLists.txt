@@ -2,12 +2,13 @@ include_directories(
 ${ROOT_INCLUDE_DIRS}
 ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g ")
 STRING(REGEX REPLACE "Tree" "EG" EG_LIB ${ROOT_Tree_LIBRARY})
 set(SRC
 UParticle.cxx 
 UEvent.cxx 
-U2U.cxx 
-U2A.cxx
+U2U.cxx
 UrQMDCall.cxx
 UPdgConvert.cxx
 UMerger.cxx
