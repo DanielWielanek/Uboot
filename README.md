@@ -15,7 +15,7 @@ download code from git then
 cd dowloaded_code
 mkdir build
 cd build 
-cmake -DCMAKE_INSTALL_PREFIX=[installation path] -DURMQD_PATH:STRING=[path to urqmd model] ..
+cmake -DCMAKE_INSTALL_PREFIX=[installation path] -D URMQD_PATH:STRING=[path to urqmd model] ..
 make 
 make install
 ```
@@ -43,9 +43,10 @@ after so yo can remove them)<br />
 UrQMD start at given time. Without patch from uboot all particles positions are interpolated to given time. Then UrQMD starts. If you apply patch particles should not interact until "formation time". <br />
 There are few ways to define this time<br />
 -t=min - start cascades when first particle is created (recommended, default)<br />
--t=fmXX - star with fixed time (XX in fm/c) <br />
+-t=XX - star with fixed time (XX in fm/c) (since ver. 2.3) <br />
 -t=av = - start with time equal to average freezout time<br />
 -t=max - start with time creation of last particle<br />
+-sup - supress UrQMD output (since ver. 2.3) <br/>
 UrQMD time calcualtion times:<br/>
 -urqmd_out=XX - where XX is output time (in UrQMD input: tim[1]=outtime)<br />
 -urqmd_calc=XX - where XX is calculation time (in UrQMD input: tim[0]=tottime)<br />
