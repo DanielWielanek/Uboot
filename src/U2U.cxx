@@ -101,14 +101,14 @@ void U2U::ReadUnigen() {
 	fEventTrash->SetB(fEvent->GetB());
 	fEventTrash->SetPhi(fEvent->GetPhi());
 	fEventTrash->SetEventNr(fEvent->GetEventNr());
-	TParticlePDG *particle_pdg = NULL;
 	Int_t feeddown = 0;
 	if(fTryDecay){
 		feeddown = DecayForUrQMD();
 	}
 	if(fEvent->GetNpa()>fFlagsSize){
 		fFlagsSize = fEvent->GetNpa()*2;
-		delete []fFlags;
+		if(fFlags)
+			delete []fFlags;
 		fFlags = new Int_t[fFlagsSize];
 	}
 	//check flags
@@ -405,4 +405,5 @@ U2U::U2U(UConfigurationParams* params): U2U(params->GetInputFile()) {
 	fStatus = params->GetStatus();
 	fUseStatus = params->UseStatus();
 	fTryDecay = params->FeedDown();
+	fFreezoutTime = params->GetTau();
 }
