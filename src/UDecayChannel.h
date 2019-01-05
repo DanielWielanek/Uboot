@@ -23,7 +23,6 @@ public:
 	UDecayChannel();
 	UDecayChannel(const UDecayChannel &other);
 	UDecayChannel operator=(const UDecayChannel &other);
-	UDecayChannel * MakeCopy()const;
 	/**
 	 * add daughter to decay channel
 	 * @param pdg daugheter pid code

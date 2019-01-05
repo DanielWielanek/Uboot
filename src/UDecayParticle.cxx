@@ -49,7 +49,7 @@ void UDecayParticle::AddDecayChannel(UDecayChannel* dec) {
 	for(int i=0;i<fDecayChannelN;i++){
 		fDecays[i] = temp[i];
 	}
-	fDecays[fDecayChannelN]=dec;
+	fDecays[fDecayChannelN]=new UDecayChannel(*dec);
 	fDecayChannelN++;
 	if(temp!=NULL)
 		delete []temp;
@@ -60,9 +60,9 @@ UDecayParticle& UDecayParticle::operator =(const UDecayParticle& other) {
 	if(fDecayChannelN!=0){
 		delete []fDecays;
 		delete []fBranchRatio;
-		fDecays = NULL;
-		fBranchRatio = NULL;
 	}
+	fDecays = NULL;
+	fBranchRatio = NULL;
 	fMotherPDG= other.fMotherPDG;
 	fDecayChannelN = other.fDecayChannelN;
 	fMass = other.fMass;
@@ -74,7 +74,7 @@ UDecayParticle& UDecayParticle::operator =(const UDecayParticle& other) {
 	fBranchRatio = new Double_t[fDecayChannelN];
 	for(int i=0;i<fDecayChannelN;i++){
 		fBranchRatio[i] = other.fBranchRatio[i];
-		fDecays[i] = other.fDecays[i]->MakeCopy();
+		fDecays[i] = new UDecayChannel(*other.fDecays[i]);
 	}
 	return *this;
 }
@@ -127,7 +127,7 @@ UDecayParticle::UDecayParticle(const UDecayParticle& other):
 	fDecays = new UDecayChannel*[fDecayChannelN];
 	fBranchRatio = new Double_t[fDecayChannelN];
 	for(int i=0;i<other.fDecayChannelN;i++){
-		fDecays[i] = other.fDecays[i]->MakeCopy();
+		fDecays[i] = new UDecayChannel(*other.fDecays[i]);
 		fBranchRatio[i] = other.fBranchRatio[i];
 	}
 }

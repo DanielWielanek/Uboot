@@ -55,7 +55,7 @@ UPdgConvert::UPdgConvert() {
 		}
 		p.SetPdg(pdgId);
 		p.AddDecayChannel(decay_c);
-
+		delete decay_c;
 		fPDG2Decay[pdgId] =p;
 		ityp = isospin = pdgId = 0;
 

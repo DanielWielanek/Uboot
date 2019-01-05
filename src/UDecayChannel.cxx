@@ -72,8 +72,3 @@ UDecayChannel::~UDecayChannel() {
 		delete []fMass;
 }
 
-UDecayChannel* UDecayChannel::MakeCopy() const{
-	UDecayChannel *copy = new UDecayChannel();
-	*copy = *this;
-	return copy;
-}
