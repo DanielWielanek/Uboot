@@ -55,7 +55,7 @@ void Welcome(){
 	Print("  \\____/|____|_.__/ \\___/ \\___/ \\__|");
 	std::cout<<"*                                                                                        *"<<std::endl;
 	std::cout<<"*                                                                                        *"<<std::endl;
-	Print("        Urqmd2unigenBOOsTer v 2.2");
+	Print("        Urqmd2unigenBOOsTer v 2.3");
 	std::cout<<"******************************************************************************************"<<std::endl;
 }
 

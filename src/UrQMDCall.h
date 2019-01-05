@@ -20,6 +20,7 @@
  */
 class UrQMDCall : public TObject{
 	Bool_t fRemove;
+	Bool_t fSuppressUrQMD;
 	Int_t fCalls;
 	Int_t fCalculationTime;
 	Int_t fOutputTime;

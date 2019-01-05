@@ -27,6 +27,7 @@ private:
 	Bool_t fFeedDown;
 	Bool_t fUseUrQMD;
 	Bool_t fUseStatus;
+	Bool_t fSuppressUrQMD;
 	eTimeFlag fTimeFlag;
 	Int_t fNevents;
 	Int_t fStatus;
@@ -49,6 +50,7 @@ public:
 	Bool_t FeedDown()const{return fFeedDown;};
 	Bool_t UseUrQMD()const{return fUseUrQMD;}
 	Bool_t UseStatus()const{return fUseStatus;};
+	Bool_t SuppressUrQMD()const{return fSuppressUrQMD;};
 	Int_t GetStatus() const {return fStatus;}
 	Int_t GetUrQMDTimeCalc() const {return fUrQMDTime_calc;}
 	Int_t GetUrQMDTimeOut()const{return fUrQMDTime_out;}

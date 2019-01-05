@@ -55,7 +55,11 @@ void UrQMDCall::GenerateRunQMD(Int_t event) {
 
 void UrQMDCall::RunQMD(Int_t event) {
 	gSystem->Exec("chmod a+x u2boot_temp/runqmd.bash_U2boot");
-	gSystem->Exec("./u2boot_temp/runqmd.bash_U2boot");
+	if(fSuppressUrQMD){
+		gSystem->Exec("./u2boot_temp/runqmd.bash_U2boot > /dev/null");
+	}else{
+		gSystem->Exec("./u2boot_temp/runqmd.bash_U2boot");
+	}
 	std::ifstream test;
 	test.open(Form("u2boot_temp/test.f13_%i",event));
 	std::string line;
@@ -94,6 +98,7 @@ void UrQMDCall::Convert() {
 	for(int i=0;i<fNEvents;i++){
 		GenerateRunQMD(i);
 		fCalls = 0;
+		std::cout<<"Staring UrQMD for Event #"<<i<<" of "<<fNEvents<<std::endl;
 		RunQMD(i);
 	}
 }
@@ -126,5 +131,6 @@ void UrQMDCall::LoadConfiguration(UConfigurationParams* params) {
 	fDeltaTime = params->GetUrQmdTimeDt();
 	fRemove = params->RemoveTemp();
 	fNEvents = params->GetNevents();
+	fSuppressUrQMD = params->SuppressUrQMD();
 	fUrQMDWriter = new U2U(params);
 }

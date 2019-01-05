@@ -14,7 +14,7 @@ UConfigurationParams::UConfigurationParams(int argc, char *argv[]):
 fRemoveTemp(kFALSE),fNoDecay(kFALSE),
 fAfterburner(kFALSE),fDecayOnly(kFALSE),
 fFeedDown(kFALSE),fUseUrQMD(kTRUE),
-fUseStatus(kFALSE),
+fUseStatus(kFALSE),fSuppressUrQMD(kFALSE),
 fTimeFlag(kMinimum),
 fNevents(-1),fStatus(-1E+9),
 fTau(-1),
@@ -44,6 +44,7 @@ fOutputFile("")
 		std::cout<<"\t-urqmd_out=X set urqmd output time tim[1]"<<std::endl;
 		std::cout<<"\t-urqmd_calc=X set urqmd calculattion time tim[0]"<<std::endl;
 		std::cout<<"\t-urqmd_dt=X set urqmd dleta time cdt"<<std::endl;
+		std::cout<<"\t-sup - supress UrQMD output"<<std::endl;
 //		std::cout<<"-aftberburner use afterburner not urqmd"<<std::endl;
 		return;
 	}
@@ -117,6 +118,10 @@ fOutputFile("")
 		if(x!=y){
 			fStatus = x;
 			fUseStatus = kTRUE;
+			continue;
+		}
+		if(par.EqualTo("-sup")){
+			fSuppressUrQMD = kTRUE;
 			continue;
 		}
 	}
