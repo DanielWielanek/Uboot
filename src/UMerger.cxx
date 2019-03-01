@@ -29,6 +29,10 @@ UMerger::UMerger(TString outFile,Bool_t decay, eUMergerMode mode):
 		if(mode==kUrQMD){
 			fUrQMDFile.open(Form("u2boot_temp/test.f13_%i",i));
 			fUrQMDFileIn.open(Form("u2boot_temp/test_U2boot_%i",i));
+			if(fUrQMDFile.fail()){// no UrQMD file
+				std::cout<<"Skipped event no "<<i<<std::endl;
+				continue;
+			}
 		}
 		fEvent->Clear();
 		switch(mode){
@@ -134,7 +138,7 @@ void UMerger::ReadUrQMDIn() {
     	UItyp typ(ityp,i3);
         Int_t pdgID = fPDG->Ityp2Pdg(typ);
         if(pdgID==0){
-        	TLorentzVector x(ppz,ppy,ppz,e);
+        	TLorentzVector x(ppx,ppy,ppz,e);
         	std::cout<<"EEEE "<<ityp<<" "<<i3<<" "<<x.M()<<std::endl;
         	continue;
         }
