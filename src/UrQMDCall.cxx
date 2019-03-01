@@ -70,6 +70,12 @@ void UrQMDCall::RunQMD(Int_t event) {
 	}
 	test.close();
 	if(nLines<20){
+		if(fCalls>50){
+			std::cout<<"\033[1;31m UrQMD problem with event "<<event <<", trying again..."<<fCalls<<"\033[0m\n"<<std::endl;
+			std::cout<<" Event must be skipped"<<std::endl;
+			gSystem->Exec( Form("rm %s",Form("u2boot_temp/test.f13_%i",event)));
+			return;
+		}
 		std::cout<<"\033[1;31m UrQMD problem with event "<<event <<", trying again..."<<fCalls<<"\033[0m\n"<<std::endl;
 		RunQMD(event);
 	}
