@@ -58,3 +58,23 @@ Output tree there has 4 types of particle status:<br />
 3 - for particles that comes from weak decays<br />
 Those values are defined in UItyp.h file.<br/>
 In UDecayParticle.h by commenting USE_BREIT_WIGNER you can disable using breit wigner procedure, resonance peaks become sharp.
+## Input file
+From 2.3 there is option of support input file with own configuration. Such inputfile begins from #UBOOT_INPUT then you can set the same flags like when running U2boot, however is such case '-' sign at begin is not required. Each flag should be in separate line. Important note! you can't set input files in input file.Such inputfile can look like this:
+```
+#UBOOT_INPUT
+feeddown
+s=1
+n=1
+sup
+t=20
+```
+or
+```
+#UBOOT_INPUT
+-feeddown
+-s=1
+-n=1
+-sup
+-t=20
+```
+Both mean the same - run Uboot with options "-feeddown -s=1 -n=1 -sup -t=20"
