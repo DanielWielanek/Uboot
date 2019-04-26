@@ -24,7 +24,7 @@
 #include "UConfigurationParams.h"
 #include "UMerger.h"
 UPdgConvert	*fPDG;
-UConfigurationParams *parameters;
+UConfigurationParams parameters;
 
 void Print(TString text){
 	text = Form("*              %s",text.Data());
@@ -77,7 +77,7 @@ void UseUrQMD(TString file_in, TString file_out){
 	UrQMDCall *call = new UrQMDCall(parameters);
 	call->Convert();
 	Print("*** merging files ***");
-	UMerger *merger = new UMerger(file_out,parameters->Decay());
+	UMerger *merger = new UMerger(file_out,parameters.Decay());
 	Print("*** cleaning up ***");
 	delete merger;
 	delete call;//dlete txt files if necessary;
@@ -103,24 +103,21 @@ int main(int argc, char *argv[]) {
 	Welcome();
 	TString file_in = argv[1];
 	TString file_out = argv[2];
-	parameters = new UConfigurationParams(argc,argv);
-	if(argc<3){
-		delete parameters;
+	parameters = UConfigurationParams(argc,argv);
+	if(argc<3)
 		return 0;
-	}
-	parameters->PrintConfiguration();
-	if(parameters->DecayOnly()){// work in decay mode
+	parameters.PrintConfiguration();
+	if(parameters.DecayOnly()){// work in decay mode
 		DecayOn(file_in, file_out);
 	}else{//call rescatter
 		gSystem->Load("libTree");
 		gSystem->Exec("mkdir u2boot_temp");
-		if(parameters->UseUrQMD()){//cal UrQMD
+		if(parameters.UseUrQMD()){//cal UrQMD
 			UseUrQMD(file_in,  file_out);
 		}else{// call other afterburner
 			gSystem->Load("libTree");
 			gSystem->Exec("mkdir u2boot_temp");
 		}
 	}
-	delete parameters;
 	return 0;
 }

@@ -32,8 +32,8 @@ class UrQMDCall : public TObject{
 	void RunQMD(Int_t event);
 	void Print(TString text)const;
 public:
-	UrQMDCall(UConfigurationParams *params=NULL);
-	void LoadConfiguration(UConfigurationParams *params);
+	UrQMDCall(const UConfigurationParams params);
+	void LoadConfiguration(const UConfigurationParams params);
 	void SetOutputTime(Int_t time){fOutputTime =time;};
 	void SetCalculationTime(Int_t time){fCalculationTime = time;};
 	void SetDeltaTime(Double_t time){fDeltaTime = time;};

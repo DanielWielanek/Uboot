@@ -21,8 +21,8 @@ fUseStatus(kFALSE),fSuppressUrQMD(kFALSE),
 fTimeFlag(kMinimum),
 fNevents(-1),fStatus(-1E+9),
 fTau(-1),
-fUrQMDTime_calc(200),
 fUrQMDTime_out(200),
+fUrQMDTime_calc(200),
 fUrQMDTime_dt(-1),
 fInputFile(""),
 fOutputFile("")
@@ -86,7 +86,6 @@ void UConfigurationParams::ReadConfigFile(TString file) {
 			exit(0);
 		}else{
 			TString *params = new TString[nLines-1];
-			int i =0;
 			input_file.clear();
 			input_file.seekg(0);
 			TString temp;

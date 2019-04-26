@@ -10,9 +10,11 @@
 #include "U2U.h"
 
 U2U::U2U(TString name) :
-fFlags(NULL),fFlagsSize(2000),fPDG(NULL),fTrashFile(NULL),
-fInputFile(NULL),fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
-fTimeFlag(UConfigurationParams::kMinimum),fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
+fFlags(NULL),fFlagsSize(2000),fTrashFile(NULL),
+fInputFile(NULL),fPDG(NULL),
+fEvent(NULL),fUrQMDEvent(NULL),fEventTrash(NULL),fFilename(name),
+fTimeFlag(UConfigurationParams::kMinimum),
+fMaxEvents(0),fStatus(0),fUseStatus(kFALSE),
 fTryDecay(kFALSE),fFreezoutTime(0),fCalculationTime(200),
 fTau(NULL),fTauSize(0),
 fBadPdg(82)
@@ -44,6 +46,8 @@ void U2U::Convert() {
 	}
 	delete fInputFile;
 	delete fTrashFile;
+	fInputFile = fTrashFile = NULL;
+	fEvent = fEventTrash = NULL;
 }
 
 void U2U::Interpolate(Double_t t_min) {
@@ -186,11 +190,8 @@ void U2U::ReadUnigen() {
 	}
 
 	fTrashFile->Fill();
-	Int_t lost = fEvent->GetNpa()-fUrQMDEvent->GetNpa();
 	Interpolate(t_min);
-	Double_t lost_frac = ((Double_t)lost)/((Double_t)fEvent->GetNpa());
 	std::cout<<"Particles\tTotal/Good/Bad/Unknown/FeedDown\t"<<fEvent->GetNpa()<<"/"<<fUrQMDEvent->GetNpa()<<"/"<<bad_particles<<"/"<<fEventTrash->GetNpa()<<"/"<<feeddown<<std::endl;
-	//std::cout<<"Tau:\t"<<t_min<<" "<<fTimeFlag<<std::endl;
 }
 
 void U2U::WriteUrQMD() {
@@ -283,7 +284,8 @@ void U2U::WriteUrQMD() {
 }
 
 U2U::~U2U() {
-	delete []fFlags;
+	if(fFlags)
+		delete []fFlags;
 	if(fTauSize>0)
 		delete []fTau;
 	if(fTempDaughters)
@@ -390,11 +392,12 @@ Bool_t U2U::TryDecay(UParticle* p, Int_t pos) {
 	return kTRUE;
 }
 
-U2U::U2U(UConfigurationParams* params): U2U(params->GetInputFile()) {
-	fTimeFlag = params->GetTimeFlag();
-	fMaxEvents = params->GetNevents();
-	fStatus = params->GetStatus();
-	fUseStatus = params->UseStatus();
-	fTryDecay = params->FeedDown();
-	fFreezoutTime = params->GetTau();
+U2U::U2U(const UConfigurationParams params):
+		U2U(params.GetInputFile()) {
+	fTimeFlag = params.GetTimeFlag();
+	fMaxEvents = params.GetNevents();
+	fStatus = params.GetStatus();
+	fUseStatus = params.UseStatus();
+	fTryDecay = params.FeedDown();
+	fFreezoutTime = params.GetTau();
 }

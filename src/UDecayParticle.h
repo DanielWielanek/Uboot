@@ -22,14 +22,13 @@ class UDecayParticle : public TObject {
 	Float_t fMass, fGamma;
 	Int_t fMotherPDG;
 	Int_t fDecayChannelN;
-	UDecayChannel **fDecays;//[fDecayChannelN]
+	UDecayChannel *fDecays;//[fDecayChannelN]
 	Double_t *fBranchRatio;//[fDecayChannelN]
 	Double_t BreitWigner(Double_t mass);
-
 	Float_t GetMass() const {return fMass;}
-	UDecayChannel *GetRandomChannel()const;
-	void Decay2Body(UParticle *mother, TClonesArray *daughters, UDecayChannel *channel,Int_t shift);
-	void Decay3Body(UParticle *mother, TClonesArray *daughters, UDecayChannel *channel,Int_t shift);
+	const UDecayChannel *GetRandomChannel()const;
+	void Decay2Body(UParticle *mother, TClonesArray *daughters, const UDecayChannel *channel,Int_t shift);
+	void Decay3Body(UParticle *mother, TClonesArray *daughters, const UDecayChannel *channel,Int_t shift);
 public:
 	/**
 	 * basic constructor
@@ -76,7 +75,7 @@ public:
 	 * add decay channel
 	 * @param dec
 	 */
-	void AddDecayChannel(UDecayChannel *dec);
+	void AddDecayChannel(const UDecayChannel dec);
 	/**
 	 *
 	 * @return numbe of decay channels

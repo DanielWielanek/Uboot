@@ -8,7 +8,9 @@
  */
 #include "UDecayChannel.h"
 #include <iostream>
-UDecayChannel::UDecayChannel() :fDaughters(0),fBranchRatio(0),fPdgCodes(NULL),fMass(NULL){
+UDecayChannel::UDecayChannel() :
+fPdgCodes(NULL),fMass(NULL),
+fDaughters(0),fBranchRatio(0){
 }
 
 void UDecayChannel::AddDaughter(Int_t pdg) {

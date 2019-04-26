@@ -78,7 +78,7 @@ public:
 	 *
 	 * @param name
 	 */
-	U2U(UConfigurationParams *params);
+	U2U(const UConfigurationParams params);
 	/**
 	 * try to decay unstable particles that cannot be processed by UrQMD
 	 */

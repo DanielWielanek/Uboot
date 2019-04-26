@@ -11,9 +11,11 @@
 #include "UItyp.h"
 #include <iostream>
 //#define DEBUG
-UDecayParticle::UDecayParticle(Int_t motherPDG):fMass(0),fGamma(0),fBranchRatio(NULL),fMotherPDG(motherPDG) {
-	fDecayChannelN = 0;
-	fDecays = NULL;
+UDecayParticle::UDecayParticle(Int_t motherPDG):
+fMass(0),fGamma(0),
+fMotherPDG(motherPDG),fDecayChannelN(0),
+fDecays(NULL),
+fBranchRatio(NULL) {
 	fMass = TDatabasePDG::Instance()->GetParticle(motherPDG)->Mass();
 }
 
@@ -21,13 +23,11 @@ void UDecayParticle::ScaleDecays() {
 	fMass = TDatabasePDG::Instance()->GetParticle(fMotherPDG)->Mass();
 	Double_t total = 0;
 	for(int i=0;i<fDecayChannelN;i++){
-		UDecayChannel *decay = fDecays[i];
-		total +=decay->GetBranchingRatio();
+		total += fDecays[i].GetBranchingRatio();
 	}
 	Double_t tot_sum = 0;
 	for(int i=0;i<fDecayChannelN;i++){
-		UDecayChannel *decay = fDecays[i];
-		tot_sum +=decay->GetBranchingRatio()/total;
+		tot_sum +=fDecays[i].GetBranchingRatio()/total;
 		fBranchRatio[i] = tot_sum;
 	}
 	fBranchRatio[fDecayChannelN-1] = 1.1;//just to be sure :)
@@ -40,16 +40,16 @@ Double_t UDecayParticle::BreitWigner(Double_t mass) {
 	  return x;
 }
 
-void UDecayParticle::AddDecayChannel(UDecayChannel* dec) {
-	UDecayChannel **temp = fDecays;
+void UDecayParticle::AddDecayChannel(const UDecayChannel dec) {
+	UDecayChannel *temp = fDecays;
 	if(fBranchRatio)
 		delete []fBranchRatio;
-	fDecays = new UDecayChannel*[fDecayChannelN+1];
+	fDecays = new UDecayChannel[fDecayChannelN+1];
 	fBranchRatio = new Double_t[fDecayChannelN+1];
 	for(int i=0;i<fDecayChannelN;i++){
 		fDecays[i] = temp[i];
 	}
-	fDecays[fDecayChannelN]=new UDecayChannel(*dec);
+	fDecays[fDecayChannelN]=dec;
 	fDecayChannelN++;
 	if(temp!=NULL)
 		delete []temp;
@@ -70,17 +70,17 @@ UDecayParticle& UDecayParticle::operator =(const UDecayParticle& other) {
 	if(fDecayChannelN==0){
 		return *this;
 	}
-	fDecays = new UDecayChannel*[fDecayChannelN];
+	fDecays = new UDecayChannel[fDecayChannelN];
 	fBranchRatio = new Double_t[fDecayChannelN];
 	for(int i=0;i<fDecayChannelN;i++){
 		fBranchRatio[i] = other.fBranchRatio[i];
-		fDecays[i] = new UDecayChannel(*other.fDecays[i]);
+		fDecays[i] = other.fDecays[i];
 	}
 	return *this;
 }
 
 Double_t UDecayParticle::GetDecayTime(UParticle* mother) const {
-	UDecayChannel *channel = GetRandomChannel();
+	const UDecayChannel *channel = GetRandomChannel();
 	Int_t daughters = channel->GetDaughterNo();
 	if(daughters==0) return 1E+34;
 	Double_t tTime;
@@ -99,17 +99,14 @@ void UDecayParticle::Print() const {
 	std::cout<<fMotherPDG<<std::endl;
 	for(int i=0;i<fDecayChannelN;i++){
 		std::cout<<" => "<<fBranchRatio[i]<<std::endl;
-		for(int j=0;j<fDecays[i]->GetDaughterNo();j++){
-			std::cout<<"    "<<fDecays[i]->GetDaughterPDG(j)<<std::endl;
+		for(int j=0;j<fDecays[i].GetDaughterNo();j++){
+			std::cout<<"    "<<fDecays[i].GetDaughterPDG(j)<<std::endl;
 		}
 	}
 }
 
 UDecayParticle::~UDecayParticle() {
 	if(fDecays){
-		for(int i=0;i<fDecayChannelN;i++){
-			delete fDecays[i];
-		}
 		delete []fDecays;
 	}
 	if(fBranchRatio)
@@ -124,10 +121,10 @@ UDecayParticle::UDecayParticle(const UDecayParticle& other):
 	fDecayChannelN = other.fDecayChannelN;
 	fMotherPDG = other.fMotherPDG;
 	if(fDecayChannelN==0) return;
-	fDecays = new UDecayChannel*[fDecayChannelN];
+	fDecays = new UDecayChannel[fDecayChannelN];
 	fBranchRatio = new Double_t[fDecayChannelN];
 	for(int i=0;i<other.fDecayChannelN;i++){
-		fDecays[i] = new UDecayChannel(*other.fDecays[i]);
+		fDecays[i] = other.fDecays[i];
 		fBranchRatio[i] = other.fBranchRatio[i];
 	}
 }
@@ -137,9 +134,11 @@ bool UDecayParticle::operator <(const UDecayParticle& other) const {
 }
 
 Int_t UDecayParticle::Decay(UParticle* mother, TClonesArray* daughter, Int_t shift) {
-	UDecayChannel *channel = GetRandomChannel();
+	const UDecayChannel *channel = GetRandomChannel();
 	Int_t daughters = channel->GetDaughterNo();
+#ifdef DEBUG
 	Int_t size = daughter->GetEntriesFast();
+#endif
 	switch(daughters){
 	case 2:{
 		Decay2Body(mother,daughter,channel, shift);
@@ -175,7 +174,7 @@ Int_t UDecayParticle::Decay(UParticle* mother, TClonesArray* daughter, Int_t shi
 	}
 }
 
-void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, UDecayChannel *channel, Int_t shift) {
+void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, const UDecayChannel *channel, Int_t shift) {
 	Double_t tTime;
 	TLorentzVector mP = mother->GetMomentum();
 	TLorentzVector mX  = mother->GetPosition();
@@ -242,7 +241,7 @@ void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, UDec
 	mother->SetLastChild(daughter2->GetIndex());
 }
 
-void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, UDecayChannel *channel, Int_t shift) {
+void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, const UDecayChannel *channel, Int_t shift) {
 
 	  Double_t tE  = mother->E();
 	  Double_t tM1 = channel->GetDaughterMass(0);
@@ -358,11 +357,11 @@ void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, UDec
 	  mother->SetLastChild(daughter3->GetIndex());
 }
 
-UDecayChannel* UDecayParticle::GetRandomChannel() const {
+const UDecayChannel* UDecayParticle::GetRandomChannel() const {
 	Double_t randval = gRandom->Rndm();
 	Int_t channel = 0;
 	while(randval>fBranchRatio[channel]){
 		channel++;
 	}
-	return fDecays[channel];
+	return fDecays +channel;
 }

@@ -73,7 +73,7 @@ void UMerger::DecayEvent() {
 	Int_t max_index = fEvent->GetNpa();
 	for(int i=0;i<fEvent->GetNpa();i++){
 		UParticle *prim = fEvent->GetParticle(i);
-		Int_t daughters = fPDG->DecayParticle(prim,fDecayedArray,max_index);
+		fPDG->DecayParticle(prim,fDecayedArray,max_index);
 	}
 	for(int i=0;i<fDecayedArray->GetEntriesFast();i++){
 		UParticle *part = (UParticle *)fDecayedArray->UncheckedAt(i);
@@ -94,10 +94,8 @@ void UMerger::ReadAfterburner(Int_t event) {
 }
 
 void UMerger::ReadUrQMDIn() {
-    int evnr = 0, ntracks = 0, aProj = 0, zProj = 0, aTarg = 0, zTarg = 0;
+    int ntracks = 0;
     int format;
-    float b = 0.;
-    float b_min = 0., b_max=0.;
     // ---> Read and check first event header line from input file
     Int_t URQMDVERSION[2] = {20030, 30400};
     char read[300];
@@ -123,7 +121,7 @@ void UMerger::ReadUrQMDIn() {
     fUrQMDFileIn.getline(read, 300); // line 18
     sscanf(read, "%d", &ntracks); // line 18
     fUrQMDFileIn.getline(read, 300); // line 19
-    int ityp = 0, i3 = 0, ichg = 0, pid = 0;
+    int ityp = 0, i3 = 0, ichg = 0;
     float ppx = 0., ppy = 0., ppz = 0., e = 0.,trash;
     float x,y,z,t;
     float tau;
@@ -147,11 +145,9 @@ void UMerger::ReadUrQMDIn() {
 }
 
 void UMerger::ReadUrQMDOut() {
-    int evnr = 0, ntracks = 0, aProj = 0, zProj = 0, aTarg = 0, zTarg = 0;
+    int ntracks = 0;
     int ncoll, parent_process;
     int format;
-    float b = 0.;
-    float b_min = 0., b_max=0.;
     // ---> Read and check first event header line from input file
     Int_t URQMDVERSION[2] = {20030, 30400};
     char read[300];
@@ -177,7 +173,7 @@ void UMerger::ReadUrQMDOut() {
     fUrQMDFile.getline(read, 300); // line 18
     sscanf(read, "%d", &ntracks); // line 18
     fUrQMDFile.getline(read, 300); // line 19
-    int ityp = 0, i3 = 0, ichg = 0, pid = 0;
+    int ityp = 0, i3 = 0, ichg = 0;
     float ppx = 0., ppy = 0., ppz = 0., e = 0.,trash;
     float x,y,z,t;
     int child[2]={0,0};

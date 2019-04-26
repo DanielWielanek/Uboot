@@ -35,27 +35,24 @@ UPdgConvert::UPdgConvert() {
 	Int_t ndaughters;
 	Double_t gamma,br;
 	Int_t daughterspdg;
-	Int_t count=0;
 	while (!decays->eof()) {
 		*decays>>pdgId>>gamma>>br>>ndaughters;
 		UDecayParticle p;
 		if(fPDG2Decay.find(pdgId)!=fPDG2Decay.end()){//such pdg already exist
 			p = fPDG2Decay[pdgId];
 		}else{
-			p = UDecayParticle();
 			p.SetPdg(pdgId);
 			p.SetGamma(gamma);
 		}
 
-		UDecayChannel *decay_c = new UDecayChannel();
-		decay_c->SetBranchingRatio(br);
+		UDecayChannel decay_c;
+		decay_c.SetBranchingRatio(br);
 		for(int i=0;i<ndaughters;i++){
 			*decays>>daughterspdg;
-			decay_c->AddDaughter(daughterspdg);
+			decay_c.AddDaughter(daughterspdg);
 		}
 		p.SetPdg(pdgId);
 		p.AddDecayChannel(decay_c);
-		delete decay_c;
 		fPDG2Decay[pdgId] =p;
 		ityp = isospin = pdgId = 0;
 
@@ -137,7 +134,6 @@ TString UPdgConvert::GetQuarks(Int_t pdg){
 		quarkB = GetQuarkCode(quarkB,anti);
 		quarks = Form("%c%c",quarkA,quarkB);
 	}else{//baryon
-		Int_t isospin = 0;
 		Char_t quarkA = name[name.Length()-4];
 		Char_t quarkB = name[name.Length()-3];
 		Char_t quarkC = name[name.Length()-2];
@@ -208,7 +204,6 @@ Bool_t UPdgConvert::Stable(Int_t pdg_code) {
 
 Int_t UPdgConvert::DecayParticle(UParticle* mother, TClonesArray* daughters,Int_t shift) {
 	if(fPDG2Decay.find(mother->GetPdg())==fPDG2Decay.end()){
-		Int_t mpid = TMath::Abs(mother->GetPdg());
 		mother->SetDecay(-1);
 		return 0;
 	}else{

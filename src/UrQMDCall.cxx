@@ -109,13 +109,13 @@ void UrQMDCall::Convert() {
 	}
 }
 
-UrQMDCall::UrQMDCall(UConfigurationParams* params):
-		fCalls(0),
+UrQMDCall::UrQMDCall(const UConfigurationParams params):
+	fRemove(kFALSE),
+	fCalls(0),
 	fCalculationTime(200),
 	fOutputTime(200),
-	fDeltaTime(-1),
 	fNEvents(-1),
-	fRemove(kFALSE),
+	fDeltaTime(-1),
 	fUrQMDWriter(NULL){
 	LoadConfiguration(params);
 }
@@ -130,13 +130,12 @@ void UrQMDCall::Print(TString text) const {
 	std::cout<<text<<empty<<"*"<<std::endl;
 }
 
-void UrQMDCall::LoadConfiguration(UConfigurationParams* params) {
-	if(params==NULL) return;
-	fCalculationTime = params->GetUrQMDTimeCalc();
-	fOutputTime = params->GetUrQMDTimeOut();
-	fDeltaTime = params->GetUrQmdTimeDt();
-	fRemove = params->RemoveTemp();
-	fNEvents = params->GetNevents();
-	fSuppressUrQMD = params->SuppressUrQMD();
+void UrQMDCall::LoadConfiguration(const UConfigurationParams params) {
+	fCalculationTime = params.GetUrQMDTimeCalc();
+	fOutputTime = params.GetUrQMDTimeOut();
+	fDeltaTime = params.GetUrQmdTimeDt();
+	fRemove = params.RemoveTemp();
+	fNEvents = params.GetNevents();
+	fSuppressUrQMD = params.SuppressUrQMD();
 	fUrQMDWriter = new U2U(params);
 }
