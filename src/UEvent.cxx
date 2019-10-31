@@ -28,7 +28,6 @@ UEvent::UEvent()
   fStepT = 0.;
   fNpa = 0;
   fComment = "";
-  fName = "Unigen";
   fParticles = new TClonesArray("UParticle", 100);
 }
 //--------------------------------------------------------------------
@@ -46,7 +45,6 @@ UEvent::UEvent(const UEvent& right)
   fStepT    = right.fStepT;
   fComment  = right.fComment;
   fNpa      = right.fNpa;
-  fName		= right.fName;
   fParticles = new TClonesArray("UParticle", 100);
   UParticle* p;
   for(Int_t i = 0; i < fNpa; i++) {
@@ -166,7 +164,6 @@ UEvent UEvent::operator =(const UEvent& right) {
 		fStepT    = right.fStepT;
 		fComment  = right.fComment;
 		fNpa      = right.fNpa;
-		fName		= right.fName;
 		fParticles->Clear();
 		UParticle* p;
 		for(Int_t i = 0; i < fNpa; i++) {
