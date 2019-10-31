@@ -16,7 +16,7 @@ class UParticle;
 /**
  * unigen event
  */
-class UEvent : public TNamed {
+class UEvent : public TObject {
 
  private:
 	/**
