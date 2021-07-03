@@ -37,7 +37,7 @@ void UFile::TryToFindTree() {
   TList* keys = fFile->GetListOfKeys();
   for (int i = 0; i < keys->GetEntries(); i++) {
     TKey* key = (TKey*) keys->At(i);
-    fTree     = dynamic_cast<TTree*>(fFile->Get(keys->GetName()));
+    fTree     = dynamic_cast<TTree*>(fFile->Get(key->GetName()));
     if (fTree != nullptr) return;
   }
   std::cout << "UFIle::TryToFindTree: cannot find tree in file" << std::endl;
