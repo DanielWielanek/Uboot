@@ -4,7 +4,7 @@
 #
 # Author: Pere Mato, 25/10/2010
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(UMacros)
 project(U2boot)
 find_package(ROOT REQUIRED)
