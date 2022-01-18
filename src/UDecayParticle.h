@@ -24,8 +24,8 @@ class UDecayParticle : public TObject {
   Int_t fDecayChannelN;
   std::vector<UDecayChannel> fDecays;  //[fDecayChannelN]
   std::vector<Double_t> fBranchRatio;  //[fDecayChannelN]
-  Double_t BreitWigner(Double_t mass);
-  Float_t GetMass() const { return fMass; }
+  Double_t BreitWigner(Double_t minMass) const;
+  Double_t CalcDecayTime(UParticle* mother) const;
   const UDecayChannel& GetRandomChannel() const;
   void Decay2Body(UParticle* mother, TClonesArray* daughters, const UDecayChannel& channel, Int_t shift);
   void Decay3Body(UParticle* mother, TClonesArray* daughters, const UDecayChannel& channel, Int_t shift);
@@ -71,7 +71,7 @@ public:
    * @param mother
    * @return estimated decay time of particle, return 1+E34 if stable
    */
-  Double_t GetDecayTime(UParticle* mother) const;
+  Double_t GetRandomDecayTime(UParticle* mother) const;
   /**
    * add decay channel
    * @param dec
@@ -92,6 +92,10 @@ public:
    * @return mother gamma
    */
   Float_t GetGamma() const { return fGamma; }
+  /**
+   * @return mass of mother
+   */
+  Float_t GetMass() const { return fMass; }
   /**
    *
    * @param mass mothe mass

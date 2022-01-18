@@ -29,11 +29,17 @@ void UDecayParticle::ScaleDecays() {
   fBranchRatio[fDecayChannelN - 1] = 1.1;  // just to be sure :)
 }
 
-Double_t UDecayParticle::BreitWigner(Double_t mass) {
-  Double_t x, y;
-  y = gRandom->Rndm();
-  x = fMass + fGamma / 2 * TMath::Tan(TMath::Pi() * (y - 0.5));
+Double_t UDecayParticle::BreitWigner(Double_t minMass) const {
+#ifdef USE_BREIT_WIGNER
+  Double_t x = 0, y;
+  do {
+    y = gRandom->Rndm();
+    x = fMass + fGamma / 2 * TMath::Tan(TMath::Pi() * (y - 0.5));
+  } while (x < minMass);
   return x;
+#else
+  return fMass;
+#endif
 }
 
 void UDecayParticle::AddDecayChannel(const UDecayChannel dec) {
@@ -42,20 +48,9 @@ void UDecayParticle::AddDecayChannel(const UDecayChannel dec) {
   fDecayChannelN++;
 }
 
-Double_t UDecayParticle::GetDecayTime(UParticle* mother) const {
-  const UDecayChannel& channel = GetRandomChannel();
-  Int_t daughters              = channel.GetDaughterNo();
-  if (daughters == 0) return 1E+34;
-  Double_t tTime;
-  TLorentzVector mP = mother->GetMomentum();
-  if (fGamma == 0) {
-    tTime = 1E+34;
-  } else {
-    double tTau0 = mP.E() / (mP.M() * fGamma);
-    // When it decays
-    tTime = -tTau0 * TMath::Log(gRandom->Rndm());
-  }
-  return tTime;
+Double_t UDecayParticle::GetRandomDecayTime(UParticle* mother) const {
+  if (GetDecayChannels() == 0) return 1e+34;  // stable particle
+  return CalcDecayTime(mother);
 }
 
 void UDecayParticle::Print() const {
@@ -66,6 +61,14 @@ void UDecayParticle::Print() const {
       std::cout << "    " << fDecays[i].GetDaughterPDG(j) << std::endl;
     }
   }
+}
+
+Double_t UDecayParticle::CalcDecayTime(UParticle* mother) const {
+  TLorentzVector mP = mother->GetMomentum();
+  if (fGamma == 0) { return 1E+10; }
+  double tTau0 = mP.E() / (fMass * fGamma);
+  // When it decays
+  return -tTau0 * TMath::Log(gRandom->Rndm());
 }
 
 UDecayParticle::~UDecayParticle() {}
@@ -122,23 +125,8 @@ void UDecayParticle::Decay2Body(UParticle* mother, TClonesArray* daughters, cons
   Int_t pdg2        = channel.GetDaughterPDG(1);
   Double_t m1       = channel.GetDaughterMass(0);
   Double_t m2       = channel.GetDaughterMass(1);
-  Double_t mM       = mother->GetMomentum().M();
-  Double_t M        = mother->GetMomentum().M();  //<<tBreitWigner( m1+m2);
-  if (fGamma == 0) {
-    tTime = 1E+10;
-  } else {
-    // M = BreitWigner(m1+m2);
-#ifdef USE_BREIT_WIGNER
-    do {
-      M = BreitWigner(mM);
-    } while ((m1 + m2) > M);
-#else
-    M = m1 + m2;
-#endif
-    double tTau0 = mP.E() / (mP.M() * fGamma);
-    // When it decays
-    tTime = -tTau0 * TMath::Log(gRandom->Rndm());
-  }
+  Double_t M        = BreitWigner(m1 + m2);
+  tTime             = CalcDecayTime(mother);
   // Decay posistion
   TVector3 boost = mP.BoostVector();
   Double_t X     = mX.X() + boost.X() * tTime;
@@ -189,13 +177,7 @@ void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, cons
   Double_t tM3 = channel.GetDaughterMass(2);
 
   // Father mass via BreitWigner
-  Double_t tMthr = tM1 + tM2 + tM3;
-  Double_t mM    = mother->GetMomentum().M();
-  Double_t tM    = 0;  // mother->GetMomentum().M();// BreitWigner(tMthr);
-  if (fGamma != 0) do {
-      tM = BreitWigner(mM);
-    } while ((tMthr) > tM);
-  tM = BreitWigner(tM);
+  Double_t tM = BreitWigner(tM1 + tM2 + tM3);
   Double_t tES1, tES2, tP1, tP2, tCos12, tZ;
   do {
     // Generate E1 and E2 with the Monte-Carlo method
@@ -210,14 +192,7 @@ void UDecayParticle::Decay3Body(UParticle* mother, TClonesArray* daughters, cons
     tCos12 = (tZ - tP1 * tP1 - tP2 * tP2 - tM3 * tM3) / (2 * tP1 * tP2);
   } while ((tCos12 < -1.0) || (tCos12 > 1.0));  // Cos Theta must exist (be within -1.0 to 1.0 )
 
-  Double_t tTime;
-  if (fGamma == 0.0)
-    tTime = 1.0e10;
-  else {
-    Double_t tTau0 = tE / (fMass * fGamma);
-    // When it decays
-    tTime = -tTau0 * TMath::Log(gRandom->Rndm());
-  }
+  Double_t tTime      = CalcDecayTime(mother);
   TLorentzVector momP = mother->GetMomentum();
   TLorentzVector momX = mother->GetPosition();
   // Decay coordinates
