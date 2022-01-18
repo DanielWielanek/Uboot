@@ -4,14 +4,14 @@
 #
 # Author: Pere Mato, 25/10/2010
 cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/modules")
 include(UMacros)
 project(U2boot)
 find_package(ROOT REQUIRED)
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++11 -ggdb8")
 if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
-  set (CMAKE_CXX_STANDARD 11)
+  set (CMAKE_CXX_STANDARD 17)
 endif()
 add_subdirectory(src)
 add_subdirectory(data)
